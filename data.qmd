@@ -1,0 +1,13 @@
+---
+title: "Data"
+format: html
+---
+
+
+
+## GitHub Repository
+
+Please refer to the [GitHub Repository / Data](https://github.com/Yuting-Fan-265/5600_time_series) that contains the code used in this analysis.
+
+## File Structure
+

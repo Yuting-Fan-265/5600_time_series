@@ -1,0 +1,128 @@
+[
+  {
+    "objectID": "data.html#github-repository",
+    "href": "data.html#github-repository",
+    "title": "Data",
+    "section": "",
+    "text": "Please refer to the GitHub Repository / Data that contains the code used in this analysis."
+  },
+  {
+    "objectID": "data.html#file-structure",
+    "href": "data.html#file-structure",
+    "title": "Data",
+    "section": "File Structure",
+    "text": "File Structure"
+  },
+  {
+    "objectID": "univariate_ts_model.html",
+    "href": "univariate_ts_model.html",
+    "title": "Univariate TS Models (ARIMA/SARIMA)",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "other.html",
+    "href": "other.html",
+    "title": "Other: Interrupted TS/ARFIMA/ Spectral Analysis",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "introduction.html",
+    "href": "introduction.html",
+    "title": "Introduction",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "conclusion.html",
+    "href": "conclusion.html",
+    "title": "Conclusions",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "deep_learning_ts.html",
+    "href": "deep_learning_ts.html",
+    "title": "Deep Learning for TS",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "code.html#github-repository",
+    "href": "code.html#github-repository",
+    "title": "Code",
+    "section": "GitHub Repository",
+    "text": "GitHub Repository\nPlease refer to the GitHub Repository / Code that contains the code used in this analysis."
+  },
+  {
+    "objectID": "code.html#file-structure",
+    "href": "code.html#file-structure",
+    "title": "Code",
+    "section": "File Structure",
+    "text": "File Structure"
+  },
+  {
+    "objectID": "financial_ts_model.html",
+    "href": "financial_ts_model.html",
+    "title": "Financial Time Series Models (ARCH/GARCH)",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "data_visualization.html",
+    "href": "data_visualization.html",
+    "title": "Data Visualization",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "eda.html",
+    "href": "eda.html",
+    "title": "Exploratory Data Analysis",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Time Series",
+    "section": "",
+    "text": "What is a Time Series ?\n\nAny metric that is measured over regular time intervals makes a Time Series. A time series is a sequence of data points or observations collected or recorded over a period of time at specific, equally spaced intervals. Each data point in a time series is associated with a particular timestamp or time period, making it possible to analyze and study how a particular variable or phenomenon changes over time. Time series data can be found in various domains and can represent a wide range of phenomena, including financial data, economic indicators, weather measurements, stock prices, sales figures, and more.\n\nExample: Weather data, Stock prices, Industry forecasts, etc are some of the common ones.\n\nThe analysis of experimental data that have been observed at different points in time leads to new and unique problems in statistical modeling and inference.\nThe obvious correlation introduced by the sampling of adjacent points in time can severely restrict the applicability of the many conventional statistical methods traditionally dependent on the assumption that these adjacent observations are independent and identically distributed.\n\nKey characteristics of time series data include:\nTemporal Order: Time series data is ordered chronologically, with each data point representing an observation at a specific point in time. The order of data points is critical for understanding trends and patterns over time.\nEqually Spaced Intervals: In most cases, time series data is collected at regular intervals, such as hourly, daily, weekly, monthly, or yearly. However, irregularly spaced time series data can also exist.\nDependency: Time series data often exhibits temporal dependency, meaning that the value at a given time is influenced by or related to the values at previous times. This dependency can take various forms, including trends, seasonality. This serial correlation is called as autocorrelation.\nComponents: Time series data can typically be decomposed into various components, including:\nTrend: The long-term movement or direction in the data. Seasonality: Repeating patterns or cycles that occur at fixed intervals. Noise/Irregularity: Random fluctuations or variability in the data that cannot be attributed to the trend or seasonality.\nApplications: Time series data is widely used for various applications, including forecasting future values, identifying patterns and anomalies, understanding underlying trends, and making informed decisions based on historical data.\nAnalyzing time series data involves techniques like time series decomposition, smoothing, statistical modeling, and forecasting. This class will cover but not be limited to traditional time series modeling including ARIMA, SARIMA, the multivariate Time Series modeling including; ARIMAX, SARIMAX, and VAR models, Financial Time Series modeling including; ARCH, GARCH models, and E-GARCH, M-GARCH..ect, Bayesian structural time series (BSTS) models, Spectral Analysis and Deep Learning Techniques for Time Series. Researchers and analysts use software tools like Python, R, and specialized time series libraries to work with and analyze time series data effectively.\nTime series analysis is essential in fields such as finance, economics, epidemiology, environmental science, engineering, and many others, as it provides insights into how variables change over time and allows for the development of predictive models to forecast future trends and outcomes.\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "author.html",
+    "href": "author.html",
+    "title": "Author",
+    "section": "",
+    "text": "Yuting Fan comes from Guangzhou, a southern city of China. She received a Master of Public Administration from South China University of Technology, and a Bachelor of Management Science in Public Relations from Sun Yat-sen University. She used to be a Senior Project Manager at Sun Yat-sen University. Her main responsibility was to liaise with various medical professors and organize Continuing Medical Education programs for hospitals across the country in China.\n\n\n\n\n\n\nEducation\n\n2023-2025: Master of Science in Data Science and Analytics, Georgetown University\n2017: Master of Public Administration, South China University of Technology\n2009: Bachelor of Management Science in Public Relations, Sun Yat-sen University\n\n\n\n\nAcademic Interests\n\nDatabase Systems and SQL\nDigital Storytelling\nNatural Language Processing\nImage Mining and Computer Vision Analytics\n\n\n\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "multivariate_ts_model.html",
+    "href": "multivariate_ts_model.html",
+    "title": "Multivariate TS Models (ARIMAX/SARIMAX/VAR)",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "data_sources.html",
+    "href": "data_sources.html",
+    "title": "Data Sources",
+    "section": "",
+    "text": "Back to top"
+  },
+  {
+    "objectID": "data.html",
+    "href": "data.html",
+    "title": "Data",
+    "section": "",
+    "text": "Please refer to the GitHub Repository / Data that contains the code used in this analysis."
+  }
+]

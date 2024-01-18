@@ -1,0 +1,56 @@
+project:
+  type: website
+
+website:
+  title: "DSAN-5600-Time-Series"
+  back-to-top-navigation: true
+  sidebar:
+    style: docked
+    contents:
+      - text: "Home Page"
+        href: index.qmd
+      - section: "Introduction"
+        contents: 
+        - href: author.qmd
+          text: Author
+        - href: code.qmd
+          text: Code
+        - href: data.qmd
+          text: Data
+        - href: introduction.qmd
+          text: Introduction
+      - section: "Preparation"
+        contents:
+        - href: data_sources.qmd
+          text: Data Sources
+        - href: data_visualization.qmd
+          text: Data Visualization
+        - href: eda.qmd
+          text: Exploratory Data Analysis
+      - section: "Methods"
+        contents:
+        - href: univariate_ts_model.qmd
+          text: Univariate TS Models (ARIMA/SARIMA)  
+        - href: multivariate_ts_model.qmd
+          text: Multivariate TS Models (ARIMAX/SARIMAX/VAR)
+        - href: financial_ts_model.qmd
+          text: Financial Time Series Models (ARCH/GARCH)
+        - href: deep_learning_ts.qmd
+          text: Deep Learning for TS
+        - href: other.qmd
+          text: Other:Interrupted TS/ARFIMA/ Spectral Analysis
+      - text: "Conclusions"
+        href: conclusion.qmd
+    pinned: false
+    search: true
+    background: primary
+bibliography: references.bib
+
+format:
+  html:
+    theme: cerulean #litera 
+    css: styles.css
+    toc: true
+
+
+

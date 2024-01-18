@@ -1,0 +1,42 @@
+---
+title: "Author"
+---
+
+
+
+```{=html}
+<table>
+  <caption></caption>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <td><img src="./images/photo.png" alt="Yuting" /></td>
+      <td>Yuting Fan comes from Guangzhou, a southern city of China. She received a Master of Public Administration from South China University of Technology, and a Bachelor of Management Science in Public Relations from Sun Yat-sen University. She used to be a Senior Project Manager at Sun Yat-sen University. Her main responsibility was to liaise with various medical professors and organize Continuing Medical Education programs for hospitals across the country in China.</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+:::: {.columns}
+::: {.column width="50%"}
+###  Education
+
+- 2023-2025: Master of Science in Data Science and Analytics, Georgetown University
+- 2017: Master of Public Administration, South China University of Technology 
+- 2009: Bachelor of Management Science in Public Relations, Sun Yat-sen University
+:::
+
+::: {.column width="50%"}
+###  Academic Interests
+
+- Database Systems and SQL 
+- Digital Storytelling 
+- Natural Language Processing
+- Image Mining and Computer Vision Analytics
+:::
+::::
