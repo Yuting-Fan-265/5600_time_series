@@ -1,7 +1,114 @@
 ---
 title: "Introduction"
+format:  
+  html:
+    code-fold: true
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
 ---
 
+# Exploring the Temporal Dynamics of the U.S. Freight Transportation Industry
+
+![](images/Modes-of-Freight.webp)
+
+## Topic Explanation
+
+Over the past few years, the freight transportation landscape in the United States has undergone significant changes, driven by various factors such as globalization, rapid technological advancements, and evolving consumer demands. These dynamic shifts have fundamentally altered the fundamentals of the freight transportation industry, making it crucial to conduct a comprehensive exploration through the lens of time series data. 
+
+This analysis aims to unravel the intricacies of the industry's evolution by considering the temporal dimensions that contribute to its multifaceted nature. To achieve this, advanced time series analysis techniques will be employed to uncover underlying patterns, trends, and pivotal moments that have shaped its trajectory. This in-depth analysis will provide a detailed understanding of the industry's historical development and its current state, enabling stakeholders to make informed decisions for the future.
+
+## Big Picture
+
+This exploration focuses on unraveling the temporal evolution of the freight trasportation industry across multiple sectors, utilizing comprehensive time series data. The first sector analyzes domestic freight movement, considering changes in values and weights of shipments across different transportation modes within the United States. The second sector takes a global perspective, focusing on the temporal dynamics of U.S. international freight trade. The third sector examines the industry's contribution to the U.S. economy over time, analyzing the long-term trend in the freight industry's impact on the nation's GDP and employment dynamics. The fourth sector delves into the stock performance of key industry players during economic downturns, aiming to shed light on the adaptability and resilience of the U.S. freight transportation industry in challenging economic landscapes.
+
+![](images/big_pic.png){width=600}
+
+
+## Literature Review
+
+Extensive research has been conducted by scholars and researchers to understand the evolution of the freight transportation industry and identify challenges and opportunities. The literature review encompasses several sources of information related to this industry.
+
+**1. Overview of U.S. Freight Transportation Trends:**
+
+Reports from the U.S. Department of Transportation (DOT) provide comprehensive insights into the state of U.S. freight transportation. 
+
+A study by the Bureau of Transportation Statistics (BTS) provides an overview of recent trends in U.S. freight transportation. It highlights the growth in freight movement, modal shares, and the impact of economic factors on the industry. 
+
+American Transportation Research Institute (ATRI) produces research reports on various aspects of freight transportation, including congestion analysis, infrastructure challenges, and industry trends.
+
+**2. Impact of E-commerce on Freight Transportation:**
+
+With the rise of e-commerce, several research papers discuss the transformational impact on freight transportation. The increased demand for last-mile delivery and changes in supply chain strategies have implications for freight movement patterns. [@wang2015deliveries]
+
+**3. Sustainability and Green Freight Initiatives:**
+
+Scholars have explored the environmental sustainability of freight transportation. The focus is on reducing emissions, improving fuel efficiency, and adopting green technologies. Government policies and industry initiatives are discussed in the context of sustainable freight.[@horvath2006environmental]
+
+**4. Resilience and Adaptation in Freight Networks:**
+
+Given disruptions like the COVID-19 pandemic, studies explore the resilience and adaptive capacity of U.S. freight networks. This includes the ability of the system to cope with unexpected shocks and disturbances. [@bhattacharjee2020us]
+
+**5. Future Trends and Scenarios:**
+
+Scholars and experts provide insights into future trends and potential scenarios for U.S. freight transportation. This involves projections related to technology adoption, infrastructure development, and changing market dynamics. [@southworth2018freight]
+
+
+## Analytical Angles
+
+This exploration is designed to provide a comprehensive and nuanced understanding of the U.S. freight transportation industry's dynamics. By addressing these key questions, I seek to contribute to a holistic perspective on how the industry has evolved and adapted to various economic and global shifts in recent years.
+
+### Sector 1: Moving Goods in the United States
+
+In this sector, I delve into the changes in shipments over time, scrutinizing the values and weights across diverse freight transportation modes. Additionally, I will analyze the overall trend in freight volume, considering shifts in distance, to provide a comprehensive understanding of how goods move within the United States.
+
+### Sector 2: International Freight
+
+The international dimension of freight trade is investigated in this sector. I want to assess how the value of international freight trade in the U.S. has evolved across different transportation modes. Furthermore, explore regional and modal variations in international freight flows, unraveling patterns that shape the global interconnectedness of the U.S. freight industry.
+
+### Sector 3: Contribution to the U.S. Economy
+
+This sector focuses on the industry's contributions to the U.S. economy. I will examine the long-term trend in the U.S. Freight Industry's contribution to the nation's GDP, providing insights into its economic significance. Additionally, scrutinize the employment dynamics within the transportation sector, track the average revenue generated from freight services, and explore the impact of fuel price fluctuations on overall revenue. The U.S. Transportation Services Index is investigated to understand how it reflects changes in freight movement patterns over time.
+
+### Sector 4: Changes in the Most Vital Stocks
+
+The final sector delves into the stock performance of the industry's major players during economic recessions, particularly those triggered by the recent global pandemic. By analyzing how these vital stocks responded to challenging economic periods, I aim to gain valuable insights into the industry's resilience and adaptability.
+
+
+## Guiding Question 
+
+![](images/question.jpeg){width=300}
+
+1. Shipment Changes Over Time:
+    - How have the values and weights of shipments evolved across various freight transportation modes in the U.S. over recent years?
+
+2. Total Freight Movement:
+	- What is the overall freight volume trend in the U.S. when considering changes in distance over the past several years?
+  
+3. International Freight Trade:
+	- How has the value of international freight trade in the U.S. shifted, categorized by different freight transportation modes, over the past several years?
+  
+4. Regional and Modal Changes in International Freight:
+	- What are the patterns in the value of U.S. international freight flows concerning both regions and transportation modes over the past several years?
+  
+5. Long-Term Industry Contribution:
+	- What is the long-term trend in the contribution of the U.S. Freight Industry to the nation's GDP over the years?
+
+6. Employment Dynamics:
+	- How does the employment landscape within the U.S. transportation sector change over time?
+
+7. Average Freight Revenue:
+	- How does the average revenue generated from freight services in the U.S. evolve over time?
+
+8. Fuel Price Impact on Freight Revenue:
+	- To what extent do fluctuations in diesel and jet fuel prices influence the overall freight revenue in the U.S. over time?
+
+9. Transportation Services Index:
+	- How does the U.S. Transportation Services Index reflect changes in freight movement patterns over time?
+
+10. Stock Performance During Recessions:
+	- How did the stock of the most crucial industry players respond to economic recessions triggered by the pandemic?
+ 
 
 
 

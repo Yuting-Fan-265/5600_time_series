@@ -1,5 +1,10 @@
 ---
 title: "Financial Time Series Models (ARCH/GARCH)"
-format: html
+format:  
+  html:
+    code-fold: true
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
 ---
 

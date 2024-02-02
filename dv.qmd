@@ -1,0 +1,228 @@
+---
+title: "Time Series Data Visualization"
+---
+
+```{r}
+#| code-fold: true
+#| code-summary: 'Importing Libraries'
+#| warning: false
+#| output: false
+library(tidyverse)
+library(ggplot2)
+library(forecast)
+library(astsa) 
+library(xts)
+library(tseries)
+library(fpp2)
+library(fma)
+library(lubridate)
+library(tidyverse)
+library(TSstudio)
+library(quantmod)
+library(tidyquant)
+library(plotly)
+library(ggplot2)
+library(imputeTS)
+library(gridExtra)
+library(reticulate)
+library(readxl)
+#use_python("/usr/local/bin/python3", require = T)
+#knitr::knit_engines$set(python = reticulate::eng_python)
+#py_install("tensorflow")
+```
+
+# Time Series Data Visualization
+
+In time series data visualization, the importance lies in presenting temporal patterns and trends in a clear and comprehensible manner. Effective visualization allows analysts and decision-makers to extract meaningful insights from the data, aiding in better understanding the dynamics of a system over time. The choice of visualization techniques is crucial, as it directly influences the interpretation of patterns within the time series. 
+
+The ability to discern seasonality, identify anomalies, and recognize patterns is vital for making informed predictions and strategic decisions. Furthermore, interactive features in visualizations enable users to delve deeper into the data, offering a dynamic and exploratory experience. 
+
+Ultimately, the clarity and accuracy of time series data visualization contribute significantly to enhancing decision-making processes across various domains, such as finance, healthcare, environmental monitoring and many other areas.
+
+
+::: panel-tabset
+
+## Data Visualization with Stock Data
+
+The following graph shows overall trends in United Airlines, Delta Airlines, American Airlines, Southwest Airlines and JetBlue Airways stock prices.
+
+```{r }
+#| warning: false
+#| code-fold: true
+
+
+options("getSymbols.warning4.0"=FALSE)
+options("getSymbols.yahoo.warning"=FALSE)
+
+tickers = c("UAL","DAL", "AAL","LUV", "JBLU" )
+for (i in tickers){
+  getSymbols(i,
+             from = "2012-10-01",
+             to = "2024-01-01")}
+
+x <- list(
+  title = "date"
+)
+y <- list(
+  title = "value"
+)
+
+stock <- data.frame(UAL$UAL.Adjusted,
+                    DAL$DAL.Adjusted,
+                    AAL$AAL.Adjusted,
+                    LUV$LUV.Adjusted,
+                    JBLU$JBLU.Adjusted)
+
+
+stock <- data.frame(stock,rownames(stock))
+colnames(stock) <- append(tickers,'Dates')
+
+stock$date<-as.Date(stock$Dates,"%Y-%m-%d")
+head(stock)
+
+################################################
+
+ggplot(stock, aes(x=date)) +
+  geom_line(aes(y=UAL, colour="UAL"))+
+  geom_line(aes(y=DAL, colour="DAL"))+
+  geom_line(aes(y=AAL, colour="AAL"))+
+  geom_line(aes(y=LUV, colour="LUV"))+
+  geom_line(aes(y=JBLU, colour="JBLU"))+
+   labs(
+    title = "Stock Prices for the Airline Companies",
+    subtitle = "From 2012-2023",
+    x = "Date",
+    y = "Adjusted Closing Prices")+
+    theme(panel.background = element_rect(fill = "white", colour = "grey50"))+
+    guides(colour=guide_legend(title="Airline Companies")) 
+```
+
+The plot displays the adjusted closing prices of five airline companies (UAL, DAL, AAL, LUV, JBLU) over the period from October 1, 2012, to January 1, 2024. Each line represents one airline company, and the colors are used to distinguish between them. Investors and analysts can visually compare the stock performance of these companies over the specified time frame. Observing trends, patterns, or divergences in the lines may provide insights into the relative performance of these airline stocks.
+
+## Interactive Plot
+
+Hover over the plot to see the difference.
+ 
+```{r}
+#| code-fold: true
+#| warning: false
+
+
+g4<- ggplot(stock, aes(x=date)) +
+  geom_line(aes(y=UAL, colour="UAL"))+
+  geom_line(aes(y=DAL, colour="DAL"))+
+  geom_line(aes(y=AAL, colour="AAL"))+
+  geom_line(aes(y=LUV, colour="LUV"))+
+  geom_line(aes(y=JBLU, colour="JBLU"))+
+   labs(
+    title = "Stock Prices for the Airline Companies",
+    subtitle = "From 2012-2023",
+    x = "Date",
+    y = "Adjusted Closing Prices")+
+    guides(colour=guide_legend(title="Airline Companies")) 
+
+
+ggplotly(g4) %>%
+  layout(hovermode = "x")
+```
+
+The interactive plot displays the adjusted closing prices of five major airline companies (UAL, DAL, AAL, LUV, JBLU) over the period from 2012 to 2023. Each colored line corresponds to one airline company. Users can hover over the plot to view specific data points for each date. This facilitates a more detailed analysis of relative stock performance. 
+
+## Litecoin plot using plotly
+
+OR you can obtain a single stock price
+
+```{r}
+#| code-fold: true
+#| warning: false
+
+
+litc <- getSymbols("LTC",auto.assign = FALSE, from = "2021-09-15",src="yahoo") 
+head(litc)
+start(litc)
+end(litc)
+
+litc=data.frame(litc)
+litc <- data.frame(litc,rownames(litc))
+head(litc)
+
+colnames(litc)[7] = "date"
+head(litc)
+
+litc$date<-as.Date(litc$date,"%Y-%m-%d")
+str(litc)
+
+
+## ggplot
+litc %>%
+  ggplot()+
+  geom_line(aes(y=LTC.Adjusted,x=date),color="blue")
+
+## plotly
+fig <- plot_ly(litc, x = ~date, y = ~LTC.Adjusted, type = 'scatter', mode = 'lines')
+
+fig <- fig %>% layout(title = "Basic line Plot")
+fig
+```
+
+The ggplot line plot illustrates the adjusted closing prices of Litecoin (LTC) over the specified time period, ranging from September 15, 2021, to the latest available date. The x-axis represents the date, while the blue line depicts the trend in LTC's adjusted closing prices. Investors can visually assess how the cryptocurrency's value has changed over time, identifying trends, patterns, or fluctuations in LTC prices. Steep inclines or declines may indicate periods of higher volatility, potentially associated with significant market events or trading activities. Analysts may use the plot to identify potential support and resistance levels, aiding in making informed decisions about buying or selling LTC.
+
+The plotly interactive scatter plot provides an engaging and exploratory visualization of Litecoin's adjusted closing prices. Users can hover over data points to obtain detailed information about the date and corresponding adjusted closing price. This interactive feature facilitates precise data inspection, allowing users to identify trends or anomalies on specific dates. The plot offers zoom and pan capabilities, enabling users to focus on particular time periods or trends. Its high customizability allows users to tailor the visualization to their preferences, making it a versatile tool for cryptocurrency market analysis.
+
+## candlestick plot
+
+```{r}
+#| code-fold: true
+#| warning: false
+
+
+#plotly
+# candlestick plot
+
+
+df <- tail(litc, 30)
+
+figc <- df %>% plot_ly(x = ~date, type="candlestick",
+          open = ~LTC.Open, close = ~LTC.Close,
+          high = ~LTC.High, low = ~LTC.Low) 
+figc <- figc %>% layout(title = "Basic Candlestick Chart")
+
+figc
+```
+
+The candlestick chart illustrates the recent 30-day price movements of Litecoin (LTC), providing a snapshot of daily opening, closing, high, and low prices. Each candlestick's color indicates upward or downward price movement, while the thin lines above and below represent intraday highs and lows. Traders can discern trends and patterns, such as upward or downward trends, aiding in decision-making. The visualization serves as a powerful tool for technical analysis, offering insights into price action and potential trading signals.
+
+##  State annual personal income plot using plotly
+
+```{r}
+#| code-fold: true
+#| warning: false
+
+library(tidyverse)
+library(tidyquant)
+library(plotly)
+
+df1 <- read.csv("Table.csv")
+colnames(df1) <- sub("X", "", colnames(df1))
+df1 <- dplyr::select(df1, -1)
+df2 <- as.data.frame(t(df1))
+colnames(df2) <- c("DC", "MD", "VA")
+df2["Year"] <- 1997:2022
+df2 <- df2[-1, ]
+(head(df2))
+
+fig <- plot_ly(df2, type = 'scatter', mode = 'lines')%>%
+  add_trace(x = ~Year, y = ~DC, name = 'DC')%>%
+  add_trace(x = ~Year, y = ~MD, name = 'MD')%>%
+  add_trace(x = ~Year, y = ~VA, name = 'VA')%>%
+  layout(title = "State annual personal income summary(Millions of current dollars)",
+  yaxis = list(title = "Total Annual Personal Income(Millions of current dollars)"),
+  legend=list(title=list(text='State')))
+
+fig
+
+```
+
+The plot illustrates the annual personal income trends for Washington, D.C. (DC), Maryland (MD), and Virginia (VA) from 1998 to 2022. Each line represents the respective state's income trajectory, providing a visual comparison over the specified time frame. Notably, D.C., Maryland, and Virginia exhibit distinctive patterns, allowing for insights into regional economic dynamics. The y-axis denotes the state total annual personal income, and the legend clarifies the association between each line and its corresponding state. This visualization offers a concise overview of the income trends across the three regions, aiding in the analysis of economic disparities or growth patterns.
+
+:::

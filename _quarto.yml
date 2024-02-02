@@ -7,8 +7,12 @@ website:
   sidebar:
     style: docked
     contents:
-      - text: "Home Page"
-        href: index.qmd
+      - section: "Home Page"
+        contents:
+        - text: Time Series
+          href: index.qmd
+        - text: Time Series Data Visualization
+          href: dv.qmd
       - section: "Introduction"
         contents: 
         - href: author.qmd

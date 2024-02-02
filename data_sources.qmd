@@ -1,5 +1,16 @@
 ---
 title: "Data Sources"
-format: html
+format:  
+  html:
+    code-fold: true
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
 ---
+
+## 7 Yahoo Stocks Data
+Yahoo! Finance is a Yahoo! network media property that delivers financial news, data, commentary, stock quotes, press releases, financial reports, and original content. It also provides online tools for personal finance management. Alongside showcasing paid partner content, it publishes original stories by its in-house journalists. It holds the 20th spot in SimilarWeb’s ranking of major news and media websites. In 2017, Yahoo! Finance introduced cryptocurrency news coverage, featuring information on over 9,000 unique coins, including Bitcoin and Ethereum.Furthermore, Yahoo Finance’s video content is accessible via connected TVs and devices like Apple TV, Samsung TV Plus, Roku, and YouTube.
+
+### Source: 
+
 
