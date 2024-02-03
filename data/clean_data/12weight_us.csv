@@ -1,0 +1,116 @@
+Trade Type ,Mode ,Year,Measure Names,Measure Values
+Domestic,Air (includes truck-air),2021,Tons (millions),2.06242131
+Domestic,Air (includes truck-air),2020,Tons (millions),2.049576266
+Domestic,Air (includes truck-air),2019,Tons (millions),2.126920667
+Domestic,Air (includes truck-air),2018,Tons (millions),2.162104477
+Domestic,Air (includes truck-air),2017,Tons (millions),2.136208277
+Domestic,Multiple Dms Modes and Mail,2021,Tons (millions),507.931712516
+Domestic,Multiple Dms Modes and Mail,2020,Tons (millions),512.190713284
+Domestic,Multiple Dms Modes and Mail,2019,Tons (millions),537.994931637
+Domestic,Multiple Dms Modes and Mail,2018,Tons (millions),548.930319137
+Domestic,Multiple Dms Modes and Mail,2017,Tons (millions),536.088051232
+Domestic,Other and Unknown,2021,Tons (millions),77.679296941
+Domestic,Other and Unknown,2020,Tons (millions),75.431961787
+Domestic,Other and Unknown,2019,Tons (millions),89.201567865
+Domestic,Other and Unknown,2018,Tons (millions),93.016315405
+Domestic,Other and Unknown,2017,Tons (millions),93.634408299
+Domestic,Pipeline,2021,Tons (millions),3291.509070995
+Domestic,Pipeline,2020,Tons (millions),3232.03704656
+Domestic,Pipeline,2019,Tons (millions),3436.843270838
+Domestic,Pipeline,2018,Tons (millions),3398.505209250
+Domestic,Pipeline,2017,Tons (millions),3132.992931581
+Domestic,Rail,2021,Tons (millions),1071.774354802
+Domestic,Rail,2020,Tons (millions),1033.828979498
+Domestic,Rail,2019,Tons (millions),1160.145009447
+Domestic,Rail,2018,Tons (millions),1207.781556432
+Domestic,Rail,2017,Tons (millions),1202.0157783
+Domestic,Truck,2021,Tons (millions),11779.921976059
+Domestic,Truck,2020,Tons (millions),11557.65010899
+Domestic,Truck,2019,Tons (millions),11941.539157212
+Domestic,Truck,2018,Tons (millions),12015.116132152
+Domestic,Truck,2017,Tons (millions),11848.258665765
+Domestic,Water,2021,Tons (millions),615.017241031
+Domestic,Water,2020,Tons (millions),601.481685396
+Domestic,Water,2019,Tons (millions),657.155613465
+Domestic,Water,2018,Tons (millions),677.075279005
+Domestic,Water,2017,Tons (millions),662.452903143
+Export,Air (includes truck-air),2021,Tons (millions),5.820404720
+Export,Air (includes truck-air),2020,Tons (millions),6.529066582
+Export,Air (includes truck-air),2019,Tons (millions),6.533273826
+Export,Air (includes truck-air),2018,Tons (millions),6.818913862
+Export,Air (includes truck-air),2017,Tons (millions),5.351311229
+Export,Multiple Dms Modes and Mail,2021,Tons (millions),7.719516126
+Export,Multiple Dms Modes and Mail,2020,Tons (millions),8.209454776
+Export,Multiple Dms Modes and Mail,2019,Tons (millions),8.393886996
+Export,Multiple Dms Modes and Mail,2018,Tons (millions),10.094789344
+Export,Multiple Dms Modes and Mail,2017,Tons (millions),7.555130524
+Export,Multiple modes and mail,2021,Tons (millions),722.694212017
+Export,Multiple modes and mail,2020,Tons (millions),808.154395809
+Export,Multiple modes and mail,2019,Tons (millions),806.520975882
+Export,Multiple modes and mail,2018,Tons (millions),766.013954483
+Export,Multiple modes and mail,2017,Tons (millions),653.133628566
+Export,Other and Unknown,2021,Tons (millions),5.988151335
+Export,Other and Unknown,2020,Tons (millions),2.634625267
+Export,Other and Unknown,2019,Tons (millions),4.240989027
+Export,Other and Unknown,2018,Tons (millions),4.348970741
+Export,Other and Unknown,2017,Tons (millions),8.04441006
+Export,Pipeline,2021,Tons (millions),87.365111835
+Export,Pipeline,2020,Tons (millions),61.87700512
+Export,Pipeline,2019,Tons (millions),61.943372857
+Export,Pipeline,2018,Tons (millions),49.914109491
+Export,Pipeline,2017,Tons (millions),53.520896337
+Export,Rail,2021,Tons (millions),106.762554772
+Export,Rail,2020,Tons (millions),97.838616618
+Export,Rail,2019,Tons (millions),109.625928614
+Export,Rail,2018,Tons (millions),110.9153099
+Export,Rail,2017,Tons (millions),103.670115534
+Export,Truck,2021,Tons (millions),113.552349083
+Export,Truck,2020,Tons (millions),112.584538804
+Export,Truck,2019,Tons (millions),122.57534433
+Export,Truck,2018,Tons (millions),121.330543558
+Export,Truck,2017,Tons (millions),124.503107517
+Export,Water,2021,Tons (millions),105.227497773
+Export,Water,2020,Tons (millions),130.114496644
+Export,Water,2019,Tons (millions),139.408752258
+Export,Water,2018,Tons (millions),162.538261382
+Export,Water,2017,Tons (millions),159.689701329
+Import,Air (includes truck-air),2021,Tons (millions),5.757693264
+Import,Air (includes truck-air),2020,Tons (millions),5.133201661
+Import,Air (includes truck-air),2019,Tons (millions),5.225688504
+Import,Air (includes truck-air),2018,Tons (millions),5.035912647
+Import,Air (includes truck-air),2017,Tons (millions),5.048258352
+Import,Multiple Dms Modes and Mail,2021,Tons (millions),5.514471923
+Import,Multiple Dms Modes and Mail,2020,Tons (millions),4.979070564
+Import,Multiple Dms Modes and Mail,2019,Tons (millions),5.47429956
+Import,Multiple Dms Modes and Mail,2018,Tons (millions),5.679806239
+Import,Multiple Dms Modes and Mail,2017,Tons (millions),7.470858715
+Import,Multiple modes and mail,2021,Tons (millions),433.820306022
+Import,Multiple modes and mail,2020,Tons (millions),477.527452251
+Import,Multiple modes and mail,2019,Tons (millions),471.512746138
+Import,Multiple modes and mail,2018,Tons (millions),468.575341778
+Import,Multiple modes and mail,2017,Tons (millions),453.617833479
+Import,Other and Unknown,2021,Tons (millions),1.553161649
+Import,Other and Unknown,2020,Tons (millions),0.626886044
+Import,Other and Unknown,2019,Tons (millions),1.111028085
+Import,Other and Unknown,2018,Tons (millions),1.017612303
+Import,Other and Unknown,2017,Tons (millions),0.518704717
+Import,Pipeline,2021,Tons (millions),255.094872238
+Import,Pipeline,2020,Tons (millions),204.302538
+Import,Pipeline,2019,Tons (millions),227.340911438
+Import,Pipeline,2018,Tons (millions),218.713628458
+Import,Pipeline,2017,Tons (millions),208.712558313
+Import,Rail,2021,Tons (millions),102.930665702
+Import,Rail,2020,Tons (millions),96.9229071
+Import,Rail,2019,Tons (millions),108.060685806
+Import,Rail,2018,Tons (millions),108.897659786
+Import,Rail,2017,Tons (millions),106.895681119
+Import,Truck,2021,Tons (millions),128.844292732
+Import,Truck,2020,Tons (millions),119.061968968
+Import,Truck,2019,Tons (millions),112.314731073
+Import,Truck,2018,Tons (millions),112.236456255
+Import,Truck,2017,Tons (millions),109.735355018
+Import,Water,2021,Tons (millions),146.846328559
+Import,Water,2020,Tons (millions),172.101536874
+Import,Water,2019,Tons (millions),204.544210272
+Import,Water,2018,Tons (millions),268.33829427
+Import,Water,2017,Tons (millions),301.338114019

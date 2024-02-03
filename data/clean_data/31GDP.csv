@@ -1,0 +1,241 @@
+Year,Mode,Type,Current $ (billions)
+2021,Household,Household,411.48
+2021,Pipeline,Household,
+2021,Transit and ground passenger,Household,
+2021,Water,Household,
+2021,Rail,Household,
+2021,Air,Household,
+2021,Other,Household,
+2021,Truck,Household,
+2021,Household,In-house,
+2021,Pipeline,In-house,
+2021,Transit and ground passenger,In-house,
+2021,Water,In-house,1.722869903
+2021,Rail,In-house,0.147524285
+2021,Air,In-house,23.8449834
+2021,Other,In-house,
+2021,Truck,In-house,204.1832853
+2021,Household,For-hire,
+2021,Pipeline,For-hire,49.339
+2021,Transit and ground passenger,For-hire,42.96
+2021,Water,For-hire,12.105
+2021,Rail,For-hire,40.042
+2021,Air,For-hire,81.765
+2021,Other,For-hire,277.913
+2021,Truck,For-hire,185.111
+2020,Household,Household,373.963
+2020,Pipeline,Household,
+2020,Transit and ground passenger,Household,
+2020,Water,Household,
+2020,Rail,Household,
+2020,Air,Household,
+2020,Other,Household,
+2020,Truck,Household,
+2020,Household,In-house,
+2020,Pipeline,In-house,
+2020,Transit and ground passenger,In-house,
+2020,Water,In-house,1.894959907
+2020,Rail,In-house,0.122909205
+2020,Air,In-house,15.63104452
+2020,Other,In-house,
+2020,Truck,In-house,177.9016882
+2020,Household,For-hire,
+2020,Pipeline,For-hire,45.08
+2020,Transit and ground passenger,For-hire,40.442
+2020,Water,For-hire,10.391
+2020,Rail,For-hire,37.63
+2020,Air,For-hire,59.336
+2020,Other,For-hire,232.972
+2020,Truck,For-hire,163.737
+2019,Household,Household,362.304
+2019,Pipeline,Household,
+2019,Transit and ground passenger,Household,
+2019,Water,Household,
+2019,Rail,Household,
+2019,Air,Household,
+2019,Other,Household,
+2019,Truck,Household,
+2019,Household,In-house,
+2019,Pipeline,In-house,
+2019,Transit and ground passenger,In-house,
+2019,Water,In-house,2.4889467
+2019,Rail,In-house,0.257193932
+2019,Air,In-house,40.08935456
+2019,Other,In-house,
+2019,Truck,In-house,179.3740724
+2019,Household,For-hire,
+2019,Pipeline,For-hire,45.924
+2019,Transit and ground passenger,For-hire,54.22
+2019,Water,For-hire,12.677
+2019,Rail,For-hire,41.311
+2019,Air,For-hire,143.558
+2019,Other,For-hire,217.838
+2019,Truck,For-hire,167.316
+2018,Household,Household,353.146
+2018,Pipeline,Household,
+2018,Transit and ground passenger,Household,
+2018,Water,Household,
+2018,Rail,Household,
+2018,Air,Household,
+2018,Other,Household,
+2018,Truck,Household,
+2018,Household,In-house,
+2018,Pipeline,In-house,
+2018,Transit and ground passenger,In-house,
+2018,Water,In-house,2.321427981
+2018,Rail,In-house,0.263300867
+2018,Air,In-house,39.53889934
+2018,Other,In-house,
+2018,Truck,In-house,177.5763554
+2018,Household,For-hire,
+2018,Pipeline,For-hire,48.074
+2018,Transit and ground passenger,For-hire,47.576
+2018,Water,For-hire,12.624
+2018,Rail,For-hire,43.122
+2018,Air,For-hire,134.641
+2018,Other,For-hire,202.862
+2018,Truck,For-hire,162.335
+2017,Household,Household,343.304
+2017,Pipeline,Household,
+2017,Transit and ground passenger,Household,
+2017,Water,Household,
+2017,Rail,Household,
+2017,Air,Household,
+2017,Other,Household,
+2017,Truck,Household,
+2017,Household,In-house,
+2017,Pipeline,In-house,
+2017,Transit and ground passenger,In-house,
+2017,Water,In-house,2.341815932
+2017,Rail,In-house,0.258766395
+2017,Air,In-house,31.12337737
+2017,Other,In-house,
+2017,Truck,In-house,162.5809011
+2017,Household,For-hire,
+2017,Pipeline,For-hire,44.098
+2017,Transit and ground passenger,For-hire,45.067
+2017,Water,For-hire,11.538
+2017,Rail,For-hire,40.828
+2017,Air,For-hire,133.762
+2017,Other,For-hire,185.432
+2017,Truck,For-hire,151.537
+2016,Household,Household,322.078
+2016,Pipeline,Household,
+2016,Transit and ground passenger,Household,
+2016,Water,Household,
+2016,Rail,Household,
+2016,Air,Household,
+2016,Other,Household,
+2016,Truck,Household,
+2016,Household,In-house,
+2016,Pipeline,In-house,
+2016,Transit and ground passenger,In-house,
+2016,Water,In-house,2.87509285
+2016,Rail,In-house,0.654121495
+2016,Air,In-house,24.03236285
+2016,Other,In-house,
+2016,Truck,In-house,163.6659888
+2016,Household,For-hire,
+2016,Pipeline,For-hire,42.07
+2016,Transit and ground passenger,For-hire,42.749
+2016,Water,For-hire,11.877
+2016,Rail,For-hire,38.596
+2016,Air,For-hire,128.43
+2016,Other,For-hire,176.447
+2016,Truck,For-hire,144.236
+2015,Household,Household,318.919
+2015,Pipeline,Household,
+2015,Transit and ground passenger,Household,
+2015,Water,Household,
+2015,Rail,Household,
+2015,Air,Household,
+2015,Other,Household,
+2015,Truck,Household,
+2015,Household,In-house,
+2015,Pipeline,In-house,
+2015,Transit and ground passenger,In-house,
+2015,Water,In-house,3.509573305
+2015,Rail,In-house,0.937914562
+2015,Air,In-house,22.18087435
+2015,Other,In-house,
+2015,Truck,In-house,160.2912354
+2015,Household,For-hire,
+2015,Pipeline,For-hire,39.807
+2015,Transit and ground passenger,For-hire,42.278
+2015,Water,For-hire,14.201
+2015,Rail,For-hire,42.222
+2015,Air,For-hire,117.342
+2015,Other,For-hire,167.969
+2015,Truck,For-hire,144.389
+2014,Household,Household,307.659
+2014,Pipeline,Household,
+2014,Transit and ground passenger,Household,
+2014,Water,Household,
+2014,Rail,Household,
+2014,Air,Household,
+2014,Other,Household,
+2014,Truck,Household,
+2014,Household,In-house,
+2014,Pipeline,In-house,
+2014,Transit and ground passenger,In-house,
+2014,Water,In-house,3.485722097
+2014,Rail,In-house,1.026132209
+2014,Air,In-house,25.14685527
+2014,Other,In-house,
+2014,Truck,In-house,135.830067
+2014,Household,For-hire,
+2014,Pipeline,For-hire,34.037
+2014,Transit and ground passenger,For-hire,40.631
+2014,Water,For-hire,14.542
+2014,Rail,For-hire,41.697
+2014,Air,For-hire,102.192
+2014,Other,For-hire,155.828
+2014,Truck,For-hire,135.586
+2013,Household,Household,302.153
+2013,Pipeline,Household,
+2013,Transit and ground passenger,Household,
+2013,Water,Household,
+2013,Rail,Household,
+2013,Air,Household,
+2013,Other,Household,
+2013,Truck,Household,
+2013,Household,In-house,
+2013,Pipeline,In-house,
+2013,Transit and ground passenger,In-house,
+2013,Water,In-house,3.111721052
+2013,Rail,In-house,1.049919007
+2013,Air,In-house,29.01050369
+2013,Other,In-house,
+2013,Truck,In-house,124.8501871
+2013,Household,For-hire,
+2013,Pipeline,For-hire,30.339
+2013,Transit and ground passenger,For-hire,38.029
+2013,Water,For-hire,14.928
+2013,Rail,For-hire,39.732
+2013,Air,For-hire,93.496
+2013,Other,For-hire,151.861
+2013,Truck,For-hire,126.575
+2012,Household,Household,295.726
+2012,Pipeline,Household,
+2012,Transit and ground passenger,Household,
+2012,Water,Household,
+2012,Rail,Household,
+2012,Air,Household,
+2012,Other,Household,
+2012,Truck,Household,
+2012,Household,In-house,
+2012,Pipeline,In-house,
+2012,Transit and ground passenger,In-house,
+2012,Water,In-house,2.978679877
+2012,Rail,In-house,0.981968315
+2012,Air,In-house,28.16296013
+2012,Other,In-house,
+2012,Truck,In-house,113.1256462
+2012,Household,For-hire,
+2012,Pipeline,For-hire,28.15641653
+2012,Transit and ground passenger,For-hire,36.3283031
+2012,Water,For-hire,11.67082651
+2012,Rail,For-hire,38.30609405
+2012,Air,For-hire,87.21815405
+2012,Other,For-hire,148.7810592
+2012,Truck,For-hire,123.7646035
