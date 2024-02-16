@@ -8,3 +8,269 @@ editor_options:
   chunk_output_type: console
 ---
 
+
+```{r}
+#| include: false
+library(tidyverse)
+library(ggplot2)
+library(forecast)
+library(astsa) 
+library(xts)
+library(tseries)
+library(fpp2)
+library(fma)
+library(lubridate)
+library(TSstudio)
+library(quantmod)
+library(tidyquant)
+library(plotly)
+library(gridExtra)               
+library(zoo)   
+```
+
+To gain a comprehensive understanding of the dataset, I will utilize various visualization techniques to explore the data extracted from the sources listed in the data sources tab. By creating different types of visualizations, I aim to uncover patterns, trends, and relationships within the dataset, facilitating a deeper understanding of its underlying structure and characteristics.
+
+
+## Moving Goods in the United States
+
+::: panel-tabset
+
+### U.S. Domestic Freight Transport Values by Mode
+
+```{r}
+# Select the Domestic values
+df <- read.csv("data/clean_data/11value_us.csv")
+df <- df[df$Trade.Type=='Domestic',]
+
+fig <- plot_ly(df, x = ~Year, y = ~Measure.Values, name = ~Mode, type = 'scatter', mode = 'lines+markers',color = ~Mode) %>%
+layout(yaxis = list(title = "Values(billions of 2017 $)"),
+         title = "U.S. Domestic Freight Transport Values by Mode")
+ 
+fig 
+```
+
+This plot illustrates the U.S. domestic freight transport values by mode from 2017 to 2021. Across all modes, the overall trend appears to be relatively stable over the period. Notably, truck transport accounts for the highest value in U.S. domestic shipments, surpassing 10,000 billion units. Conversely, other modes remain below 20,000 billion units. Additionally, there is a noticeable decline in each mode's value in 2020, attributable to the COVID-19 pandemic.
+
+### U.S. Domestic Freight Transport Weights by Mode
+```{r}
+# Select the Domestic weights
+df <- read.csv("data/clean_data/12weight_us.csv")
+df <- df[df$Trade.Type=='Domestic',]
+
+fig <- plot_ly(df, x = ~Year, y = ~Measure.Values, name = ~Mode, type = 'scatter', mode = 'lines+markers',color = ~Mode) %>%
+layout(yaxis = list(title = "Weights(Tons(millions))"),
+         title = "U.S. Domestic Freight Transport Weights by Mode")
+ 
+fig 
+```
+
+This plot visualizes the U.S. domestic freight transport weights by mode from 2017 to 2021. Throughout the period, the overall trend shows relative stability across all modes. Notably, truck transport emerges as the dominant mode, accounting for nearly 12,000 million tons. In contrast, other modes maintain weights below 20,000 million tons, except for pipeline transport, which hovers around 30,000 million tons. Additionally, a discernible decline is observed in each mode's weight in 2020, attributed to the impact of the COVID-19 pandemic.
+
+:::
+
+### U.S. Total freight Moved by Distance
+```{r}
+df <- read.csv("data/clean_data/13distance_us.csv")
+df <- df[df$Measure.Names=='% of Total ton-miles (millions)',]
+df$Measure.Values = round(df$Measure.Values*100,1)
+
+# Create the bar plot
+TS3 <- plot_ly(df, x = ~Distance.band..miles., y = ~`Measure.Values`, text = ~`Measure.Values`, textposition = 'auto', frame = ~Year, type = 'bar') %>%
+  
+  # Specify the y-axis range and title
+  layout(yaxis = list(title = "% of Total ton-miles (millions)"),
+         xaxis = list(title = "Distance (miles)", 
+                      tickfont = list(family = 'Arial', color = 'black', size = 10)),
+         title = 'Total freight moved by distance')
+
+
+# Display the plot
+TS3
+
+```
+
+This plot illustrates the total freight movement by distance in the U.S. from 2017 to 2021. Analysis of the data highlights that freight movement within the distance ranges of 100-240 miles and 1000-1499 miles constitutes the majority, each contributing approximately 20% to the total freight movement in each year. In contrast, movement below 100 miles represents the smallest proportion, accounting for only around 5% of the total weight. Additionally, distances of 500-749 miles and 1500-2000 miles contribute approximately 8% each, while distances of 250-499 miles contribute around 15%. Other distance ranges contribute roughly 10% each to the total freight movement.
+
+
+## International Freight
+
+::: panel-tabset
+
+### U.S. International Freight Transport Values by Mode
+
+```{r}
+# Select the international values
+df <- read.csv("data/clean_data/21international_value.csv")
+df <- df[df$Trade.Type=='Total trade',]
+df <- df[df$Measure=='Billions of U.S. Dollars',]
+
+fig <- plot_ly(df, x = ~Year, y = ~Value, name = ~Mode, type = 'scatter', mode = 'lines+markers',color = ~Mode) %>%
+layout(yaxis = list(title = "Values(Billions of U.S. Dollars)"),
+         title = "U.S. International Freight Transport Values by Mode")
+ 
+fig 
+```
+
+This plot depicts U.S. international freight transport values by mode. The overall trend exhibits an upward trajectory, particularly evident post-2020. However, there is a notable drop in 2020 attributed to the COVID-19 pandemic, followed by a discernible rebound thereafter. Water transport emerges as the dominant mode for international freight, surpassing 2000 billion units by 2022.
+
+### U.S. International Freight Transport Weights by Mode
+```{r}
+# Select the international weights
+df <- read.csv("data/clean_data/21international_value.csv")
+df <- df[df$Trade.Type=='Total trade',]
+df <- df[df$Measure=='Millions of Short Tons',]
+
+fig <- plot_ly(df, x = ~Year, y = ~Value, name = ~Mode, type = 'scatter', mode = 'lines+markers',color = ~Mode) %>%
+layout(yaxis = list(title = "Weights(Millions of Short Tons)"),
+         title = "U.S. International Freight Transport Weights by Mode")
+fig
+```
+
+This plot illustrates U.S. international freight transport weights by mode. While the overall trend appears relatively flat, there is a slight decline in 2020 attributed to the COVID-19 pandemic, followed by a noticeable rebound thereafter. Notably, water transport emerges as the dominant mode for international freight, surpassing 1500 million short tons. Additionally, there is a decline in 2022 across all modes except for water transport.
+
+:::
+
+### U.S. International freight flows by Region and Mode
+
+```{r}
+#| warning: false
+df <- read.csv("data/clean_data/22International_Region.csv")
+
+# Create the bar plot
+TS <- plot_ly(df, x = ~Region, y = ~Value, name=~Mode, color=~Mode, frame = ~Year, type = 'bar') %>%
+  
+  # Specify the y-axis range and title
+  layout(yaxis = list(title = "Value of freight flows (millions of dollars)"), barmode='stack') %>%
+  layout(xaxis = list(tickfont = list(family = 'Arial', color = 'black', size = 10)),
+         title = 'International freight flows by Region and Mode')
+
+
+# Display the plot
+TS
+
+```
+
+This plot illustrates the dynamic landscape of U.S. international freight flows across various regions and modes of transportation. Overall, there is a notable upward trajectory in the volume of freight being transported.
+
+Asia emerges as the predominant destination for international freight shipments, boasting the highest values among the regions analyzed. Following closely behind is Europe, which steadily approaches Asia in terms of freight volume. Notably, both Asia and Europe primarily rely on vessel and air transport for their international freight movement. Examining the shift over time, at the outset, vessel transport dominates the freight movement in these regions, comprising over 50% of the total. However, a significant transition occurs as air transport gradually supersedes vessel transport, becoming the primary mode of freight transportation, constituting over 50% of the total volume.
+
+In contrast, for neighboring countries such as Canada and Mexico, truck transport emerges as the predominant mode, accounting for over 60% of the freight movement. Particularly in Mexico, truck transportation dominates, handling nearly 70% of all freight shipments at 2022. Furthermore, there is a noteworthy increase in other modes of transportation. For instance, the utilization of pipelines for transporting freight to Canada has seen a remarkable surge, doubling in volume each year since 2020, indicating a shifting trend in transportation preferences and infrastructure development.
+
+
+## Contribution to the U.S. Economy
+
+::: panel-tabset
+
+### Gross domestic product (GDP) Attributed by Freight Mode
+
+```{r}
+#| warning: false
+df <- read.csv("data/clean_data/31GDP.csv")
+# Group by Year and Mode, calculate the sum of GDP within each group
+df1 <- df %>%
+  group_by(Year, Mode) %>%
+  summarize(Value = sum(Current....billions., na.rm = TRUE))
+
+p<-ggplot(df1, aes(x = Year, y = Value, color = Mode)) +
+  geom_line() +
+  ggtitle("Gross domestic product (GDP) Attributed by Freight Mode") +
+  labs(y="Value(current billions)")
+
+pf<-p + facet_wrap(~Mode, ncol = 4) +
+theme(axis.text.x = element_text(face = "bold", color = "blue", size = 7, angle = 45))
+
+ggplotly(pf)
+```
+
+This plot illustrates the contribution of various freight modes to the U.S. GDP from 2012 to 2021. Notably, household, truck, and other modes have experienced significant growth and collectively account for the majority of the GDP in the freight transportation industry, totaling around 70%.
+
+The air freight sector saw substantial growth until 2020, after which it experienced a sharp decline, followed by a gradual recovery in 2021. Despite this setback, air transportation remains a significant contributor to the GDP of the freight industry.
+
+In contrast, other modes such as pipeline, rail, and water exhibit relatively stable trends, with their combined contribution hovering around 10% of the total GDP throughout the analyzed period.
+
+### Average freight revenue per ton-mile by Mode
+
+```{r}
+df <- read.csv("data/clean_data/33revenue.csv")
+
+p<-ggplot(df, aes(x = Year, y = Value, color = Mode)) +
+  geom_line() +
+  ggtitle("Average freight revenue per ton-mile by Mode") +
+  labs(y="Value(per ton-mile (current cents))")
+
+pf<-p + facet_wrap(~Mode, ncol = 5) +
+theme(axis.text.x = element_text(face = "bold", color = "blue", size = 7, angle = 45))
+
+ggplotly(pf)
+```
+
+This plot displays the average freight revenue per ton-mile across different modes of transportation. Notably, domestic air carriers exhibit considerable fluctuations in revenue. Initially, there was a significant increase until 2019, followed by a notable drop since 2020. Despite these fluctuations, the average revenue remains over ten times higher than that of other modes. In 2019, it peaked at 137 current cents per ton-mile, whereas in 2021, it decreased to 97 cents.
+
+In contrast, other modes such as rail, oil pipeline, and water transportation maintain relatively lower average revenues, consistently below 10 cents per ton-mile. The trucking industry shows a sharp upward trend in revenue, although it still remains below 20 cents per ton-mile.
+:::
+
+
+## Stock Prices for the Best-Known Transportation Companies
+
+```{r }
+#| warning: false
+#| code-fold: true
+#| 
+options("getSymbols.warning4.0"=FALSE)
+options("getSymbols.yahoo.warning"=FALSE)
+
+tickers = c("UPS","UNP","JBHT","KEX")
+for (i in tickers){
+  getSymbols(i,
+             from = "2017-01-01",
+             to = "2023-12-31")}
+
+x <- list(
+  title = "date"
+)
+y <- list(
+  title = "value"
+)
+
+stock <- data.frame(UPS$UPS.Adjusted,
+                    UNP$UNP.Adjusted,
+                    JBHT$JBHT.Adjusted,
+                    KEX$KEX.Adjusted
+                    )
+
+
+stock <- data.frame(stock,rownames(stock))
+colnames(stock) <- append(tickers,'Dates')
+
+stock$date<-as.Date(stock$Dates,"%Y-%m-%d")
+#(head(stock))
+################################################
+
+ggplot(stock, aes(x=date)) +
+  geom_line(aes(y=UPS, colour="UPS"))+
+  geom_line(aes(y=UNP, colour="UNP"))+
+  geom_line(aes(y=JBHT, colour="JBHT"))+
+  geom_line(aes(y=KEX, colour="KEX"))+
+   labs(
+    title = "Stock Prices for the Best-Known Transportation Companies",
+    subtitle = "From 2017-2023",
+    x = "Date",
+    y = "Adjusted Closing Prices")+
+    theme(panel.background = element_rect(fill = "white", colour = "grey50"))+
+    guides(colour=guide_legend(title="Transportation Companies")) 
+
+```
+
+This plot illustrates the stock price performance of some of the most renowned transportation companies spanning the years 2017 to 2023. Among these companies are:
+
+United Parcel Service (UPS): A global leader in package delivery, UPS handles billions of packages and documents annually via land, sea, and air routes. Additionally, UPS operates a widespread network of stores, customer centers, and drop boxes.
+
+Union Pacific (UNP): As a prominent industrial railroad, Union Pacific boasts an extensive track network covering the western two-thirds of the United States. The company facilitates the transportation of diverse cargo ranging from coal and chemicals to agricultural produce and automobiles.
+
+J.B. Hunt Transport Services (JBHT): With its vast coverage network, J.B. Hunt provides trucking services across the United States, Canada, and Mexico. Moreover, J.B. Hunt collaborates with partner networks to offer various transportation modes, ensuring optimal efficiency in cargo transportation.
+
+Kirby (KEX): As a significant U.S. tank barge operator, Kirby utilizes the entire Mississippi River watershed to transport goods across the heartland of the United States. The company delivers bulk liquids to customers along the west, east, and Gulf of Mexico coasts, as well as serving Alaska and Hawaii.
+
+The plot visually depicts the fluctuations in the stock prices of these transportation giants over the specified timeframe, providing insights into their respective financial performances and market dynamics.
+
+

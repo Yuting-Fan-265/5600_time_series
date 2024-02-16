@@ -52,7 +52,7 @@ bibliography: references.bib
 
 format:
   html:
-    theme: cerulean #litera 
+    theme: cerulean   #litera 
     css: styles.css
     toc: true
 

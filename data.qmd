@@ -7,7 +7,7 @@ format: html
 
 ## GitHub Repository
 
-Please refer to the [GitHub Repository / Data](https://github.com/Yuting-Fan-265/5600_time_series) that contains the code used in this analysis.
+Please refer to the [GitHub Repository / Data](https://github.com/Yuting-Fan-265/5600_time_series/tree/main/data) that contains the code used in this analysis.
 
 ## File Structure
 
