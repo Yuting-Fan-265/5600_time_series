@@ -202,7 +202,7 @@ library(tidyverse)
 library(tidyquant)
 library(plotly)
 
-df1 <- read.csv("Table.csv")
+df1 <- read.csv("data/DMVincome.csv")
 colnames(df1) <- sub("X", "", colnames(df1))
 df1 <- dplyr::select(df1, -1)
 df2 <- as.data.frame(t(df1))

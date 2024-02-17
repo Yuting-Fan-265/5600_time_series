@@ -1,0 +1,650 @@
+---
+title: "Exploratory Data Analysis"
+format:  
+  html:
+    code-fold: true
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r}
+#| include: false
+library(tidyverse)
+library(ggplot2)
+library(forecast)
+library(astsa) 
+library(xts)
+library(tseries)
+library(fpp2)
+library(fma)
+library(lubridate)
+library(TSstudio)
+library(quantmod)
+library(tidyquant)
+library(plotly)
+library(gridExtra)               
+library(zoo)   
+```
+
+Conducting exploratory data analysis (EDA) forms the bedrock of data analysis practices. Through EDA, analysts delve into the intricate dynamics of their data, unraveling hidden patterns, trends, and anomalies. By identifying the underlying components and understanding their nature—be it multiplicative or additive—insights are gained into the fundamental structure of the data. 
+
+Lag plots and auto-correlation visualizations shed light on temporal dependencies, helping to uncover relationships between observations at different time points. Testing for stationarity aids in assessing the stability of statistical properties over time, a critical consideration in time series analysis.
+
+Furthermore, employing differencing and detrending methodologies enables analysts to mitigate trends and achieve stationarity, facilitating more accurate modeling and forecasting.
+
+
+## Time Series Visualization
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+canada <- read.csv("data/clean_data/24monthly_canada_freight.csv")
+canada <- canada[,c("Date","Value")]
+canada_ts <- ts(canada$Value, start = decimal_date(as.Date("2006-01-01", format = "%Y-%m-%d")), end = decimal_date(as.Date("2023-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+ca <- autoplot(canada_ts, xlab= "Date", ylab = "Billions", colour = "blue")+
+ggtitle('U.S.-Canada Freight Value Over Time')
+
+ggplotly(ca)
+```
+
+This plot reveals an overall upward trend with notable fluctuations in 2009 and 2020, corresponding to economic downturns. Additionally, recurring seasonality is evident each year. The gradual nature of the upward trend suggests an additive series rather than a drastic surge.  
+
+### U.S. Air Transportation Employment
+
+```{r}
+employment <- read.csv("data/clean_data/32monthly_employment.csv")
+employment <- employment[,c("Date","Transportation.Employment...Air.Transportation")]
+employment_ts <- ts(employment$Transportation.Employment...Air.Transportation, start = decimal_date(as.Date("2005-01-01", format = "%Y-%m-%d")), end = decimal_date(as.Date("2024-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+em <- autoplot(employment_ts, xlab= "Date", ylab = "Employment", colour = "blue")+
+ggtitle('U.S. Air Transportation Employment Over Time')
+
+ggplotly(em)
+```
+
+This plot showcases a slight overall upward trend amidst significant fluctuations. A notable downward trend is observed from 2008 until a rebound in 2014, followed by a sharp drop in 2020 attributed to the COVID-19 pandemic. Despite these fluctuations, recurring seasonal patterns are discernible each year. The gradual nature of the trend suggests an additive series rather than a dramatic surge.
+
+### U.S. Freight Transportation Services Index
+```{r}
+tsi <- read.csv("data/clean_data/35monthly_TSI.csv")
+tsi_ts <- ts(tsi$Transportation.Services.Index...Freight, start = decimal_date(as.Date("2000-01-01", format = "%Y-%m-%d")), end = decimal_date(as.Date("2023-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+t <- autoplot(tsi_ts, xlab= "Date", ylab = "Transportation Services Index", colour = "blue")+
+ggtitle('U.S. Freight Transportation Services Index Over Time')
+
+ggplotly(t)
+```
+
+This plot illustrates an overall upward trend with two noticeable fluctuations in 2009 and 2020 attributed to economic downturns. Additionally, there are discernible seasonal patterns observed each year. The upward trend appears gradual, indicative of an additive series rather than a rapid ascent. 
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+air <- read.csv("data/clean_data/33revenue.csv")
+air <- air[air$Mode=="Air carrier, domestic",c("Year","Value")]
+air <- air[order(air$Year), ]
+air_ts <- ts(air$Value, start = decimal_date(as.Date("2000-01-01", format = "%Y-%m-%d")), end = decimal_date(as.Date("2021-01-01", format = "%Y-%m-%d")), frequency = 1)
+
+a <- autoplot(air_ts, xlab= "Year", ylab = "Freight revenue per ton-mile (current cents)", colour = "blue")+
+ggtitle('U.S. Domestic Air Carrier Average Freight Revenue Over Time')
+
+ggplotly(a)
+```
+
+This plot depicts an overall upward trend punctuated by significant fluctuations, notably in 2001 and 2020, attributed to economic downturns, with a rapid rebound observed in 2010. Additional minor fluctuations are evident in 2009 and 2016. Since the data is recorded annually, there is no discernible seasonality. The gradual nature of the upward trend suggests an additive series rather than a sharp incline. 
+
+### UPS Stock Price
+
+```{r}
+ups <- getSymbols("UPS",auto.assign = FALSE, from = "2017-01-01", to = "2024-01-01",src="yahoo") 
+ups=data.frame(ups)
+ups <- data.frame(ups,rownames(ups))
+colnames(ups)[7] = "date"
+ups$date<-as.Date(ups$date,"%Y-%m-%d")
+ups_ts <- ts(ups$UPS.Adjusted, start = decimal_date(as.Date("2017-01-03", format = "%Y-%m-%d")), frequency = 365.25)
+
+u <- autoplot(ups_ts, xlab= "Date", ylab = "Stock Price", colour = "blue")+
+ggtitle('UPS Stock Price Over Time')
+
+ggplotly(u)
+```
+
+This plot illustrates an overall upward trend, with two significant increases observed in 2019 attributed to the surge in delivery demand during the COVID-19 pandemic. Additionally, recurring seasonal patterns are evident each year. The gradual nature of the upward trend suggests an additive series rather than a sharp incline. 
+
+:::
+
+
+## Component Analysis
+
+::: panel-tabset
+### U.S.-Canada Freight Value
+
+```{r}
+decomposed <- decompose(canada_ts, "additive")
+autoplot(decomposed, colour = "#5a3196", main = "Decomposition Plot For UPS Stock Price Data")+theme_bw()
+```
+
+The decomposition of the time series data aligns with the initial observations made during data exploration. The trend component indicates a consistent upward trend over time, corroborating our earlier findings. Furthermore, the presence of seasonality in the dataset is confirmed, reinforcing our understanding of recurring patterns within the data. 
+
+### U.S. Air Transportation Employment
+
+```{r}
+decomposed <- decompose(employment_ts, "additive")
+autoplot(decomposed, colour = "#5a3196", main = "Decomposition Plot For U.S. Air Transportation Employment Data")+theme_bw()
+```
+
+The decomposition of the time series validates our initial observations from data exploration. Specifically, the trend component illustrates a consistent upward trend with a notable fluctuation in 2020, aligning with our earlier findings. Additionally, the presence of seasonality in the dataset is confirmed, further reinforcing our understanding of recurring patterns within the data.
+
+### U.S. Freight Transportation Services Index
+```{r}
+decomposed <- decompose(tsi_ts, "additive")
+autoplot(decomposed, colour = "#5a3196", main = "Decomposition Plot For U.S. Freight Transportation Services Index Data")+theme_bw()
+```
+
+The decomposition of the time series data aligns with the initial observations made during data exploration. The trend component indicates a consistent upward trend over time, corroborating our earlier findings. Furthermore, the presence of seasonality in the dataset is confirmed, reinforcing our understanding of recurring patterns within the data.
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+
+Decomposition was not able to be ran on this dataset because there was not enough seasonality.
+
+### UPS Stock Price
+
+```{r}
+decomposed <- decompose(ups_ts, "additive")
+autoplot(decomposed, colour = "#5a3196", main = "Decomposition Plot For UPS Stock Price Data")+theme_bw()
+```
+
+The decomposition of the time series validates our initial observations from the data exploration phase. Specifically, the trend component indicates a consistent upward trend with a significant increase observed from 2019 to 2020, aligning with our earlier findings. Additionally, the presence of seasonality in the dataset is confirmed, further reinforcing our understanding of recurring patterns within the data. 
+:::
+
+
+
+## Lag Plot Analysis
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+gglagplot(canada_ts, do.lines=FALSE) +xlab("Lags")+ylab("Value(billions)")+ggtitle("Lag Plot for U.S.-Canada Freight Value")+theme(axis.text.x=element_text(angle=45, hjust=1))+ theme_bw()
+```
+
+Initially, there is a strong positive autocorrelation observed in the first two lags, indicating a significant correlation between adjacent time points. However, as we move further along the lag sequence, the autocorrelation gradually weakens, suggesting a diminishing correlation between more distant observations. By lags 13-16, the autocorrelation becomes very weak, indicating minimal correlation between observations separated by larger time intervals. 
+
+### U.S. Air Transportation Employment
+
+```{r}
+gglagplot(employment_ts, do.lines=FALSE) +xlab("Lags")+ylab("Value")+ggtitle("Lag Plot for U.S. Air Transportation Employment")+theme(axis.text.x=element_text(angle=45, hjust=1))+ theme_bw()
+```
+
+Initially, there is a notable positive autocorrelation observed in the first three lags, indicating a strong correlation between adjacent time points. However, as we progress along the lag sequence, the autocorrelation gradually diminishes, suggesting a weakening correlation between observations further apart in time. By lags 13-16, the autocorrelation becomes very weak, indicating minimal correlation between observations separated by larger time intervals. 
+
+### U.S. Freight Transportation Services Index
+```{r}
+gglagplot(tsi_ts, do.lines=FALSE) +xlab("Lags")+ylab("TSI")+ggtitle("Lag Plot for U.S. Freight Transportation Services Index")+theme(axis.text.x=element_text(angle=45, hjust=1))+ theme_bw()
+```
+
+Initially, there is a strong positive autocorrelation observed for the first three lags, indicating a robust correlation between adjacent time points. As we progress along the lag sequence, the autocorrelation gradually weakens but remains relatively strong until lag 12. However, beyond lag 12, the autocorrelation diminishes further, indicating a decline in the strength of correlation between observations separated by larger time intervals.
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+gglagplot(air_ts, do.lines=FALSE) +xlab("Lags")+ylab("Value(per ton-mile (current cents))")+ggtitle("Lag Plot for U.S. Domestic Air Carrier Average Freight Revenue")+theme(axis.text.x=element_text(angle=45, hjust=1))+ theme_bw()
+```
+
+There is a stronger positive autocorrelation observed in the first lag, indicating a notable correlation between adjacent time points. However, beyond the first lag, there is either no discernible autocorrelation or very weak positive autocorrelation observed. 
+
+### UPS Stock Price
+
+```{r}
+gglagplot(ups_ts, do.lines=FALSE) +xlab("Lags")+ylab("Value")+ggtitle("Lag Plot for UPS Stock Price")+theme(axis.text.x=element_text(angle=45, hjust=1))+ theme_bw()
+```
+
+Initially, there is a strong positive autocorrelation observed for the first four lags, indicating a robust correlation between adjacent time points. As we progress along the lag sequence, the autocorrelation gradually weakens but remains relatively strong until lag 16. This sustained strength in autocorrelation suggests that there is still a notable correlation between observations even as we move further along the lag sequence. 
+
+:::
+
+
+
+## ACF & PACF Plots
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+plot1<-ggAcf(canada_ts)+ggtitle("U.S.-Canada Freight Value ACF") + theme_bw()
+plot2<- ggPacf(canada_ts)+theme_bw()+ggtitle("U.S.-Canada Freight Value PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the ACF and PACF plots, we observe strong correlations at the beginning lags, gradually decreasing but remaining relatively strong until lag 12 in the ACF plot. In contrast, the PACF plot also exhibits strong correlation at lag 1, with moderate correlation extending until lag 13. The presence of significant correlations in both plots suggests that the time series data is non-stationary.
+
+### U.S. Air Transportation Employment
+
+```{r}
+plot1<-ggAcf(employment_ts)+ggtitle("U.S. Air Transportation Employment ACF") + theme_bw()
+plot2<- ggPacf(employment_ts)+theme_bw()+ggtitle("U.S. Air Transportation Employment PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the ACF plot, there is strong correlation observed from lag 1 to lag 16, with the correlation gradually decreasing but remaining relatively strong throughout. Similarly, the PACF plot shows strong correlation at lag 1 and lag 2. Given the presence of significant correlations in both plots, we can infer that the series is likely non-stationary.
+
+### U.S. Freight Transportation Services Index
+```{r}
+plot1<-ggAcf(tsi_ts)+ggtitle("U.S. Freight Transportation Services Index ACF") + theme_bw()
+plot2<- ggPacf(tsi_ts)+theme_bw()+ggtitle("U.S. Freight Transportation Services Index PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the ACF plot, there is a strong correlation observed at lag 1, with the correlation slightly decreasing but remaining relatively strong until the end of the plot. Similarly, the PACF plot shows strong correlation at lag 1. Given the presence of significant correlations in both plots, we can infer that the series is likely non-stationary. 
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+plot1<-ggAcf(air_ts)+ggtitle("U.S. Domestic Air Carrier Average Freight Revenue ACF") + theme_bw()
+plot2<- ggPacf(air_ts)+theme_bw()+ggtitle("U.S. Domestic Air Carrier Average Freight Revenue PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the description provided, the ACF plot demonstrates strong correlation at lag 1 and moderate correlation at lag 2 and lag 3. Additionally, the PACF plot exhibits strong correlation only at lag 1. Given the presence of significant correlations in both plots, particularly at lag 1, and moderate correlation at subsequent lags, we can infer that the series is likely non-stationary.
+
+### UPS Stock Price
+
+```{r}
+plot1<-ggAcf(ups_ts)+ggtitle("UPS Stock Price ACF") + theme_bw()
+plot2<- ggPacf(ups_ts)+theme_bw()+ggtitle("UPS Stock Price PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the provided information, it appears that the ACF plot shows strong correlation beginning at lag 1 and then slightly decreasing but remaining strong until the end. Additionally, the PACF plot exhibits strong correlation only at lag 1. Given the presence of significant correlations in both plots, particularly at lag 1, and the sustained autocorrelation observed in the ACF plot, we can infer that the series is likely non-stationary.
+
+:::
+
+
+
+## Adjusted Dickey-Fuller Test
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+tseries::adf.test(canada_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+### U.S. Air Transportation Employment
+
+```{r}
+tseries::adf.test(employment_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+### U.S. Freight Transportation Services Index
+```{r}
+tseries::adf.test(tsi_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+tseries::adf.test(air_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+### UPS Stock Price
+
+```{r}
+tseries::adf.test(ups_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+:::
+
+
+
+## Detrend & Differencing
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+require(gridExtra)
+fit = lm(canada_ts~time(canada_ts), na.action=NULL)
+
+plot1<-autoplot(resid(fit), main="Detrended") +theme_bw()
+plot2<-autoplot(diff(canada_ts), main="First Difference") +theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+```{r}
+plot1 <- ggAcf(canada_ts, 48) + ggtitle("Original Data")+theme_bw()
+plot2 <- ggAcf(resid(fit), 48) + ggtitle("Detrended Data")+theme_bw()
+plot3 <- ggAcf(diff(canada_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2, plot3,nrow=3)
+```
+
+The differenced data exhibits greater stationarity compared to both the original and detrended data. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the First Order Difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
+
+```{r}
+plot1 <- ggAcf(diff(canada_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+plot2 <- ggAcf(diff(diff(canada_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
+
+grid.arrange(plot1, plot2, nrow=2)
+```
+
+
+### U.S. Air Transportation Employment
+
+```{r}
+require(gridExtra)
+fit1 = lm(employment_ts~time(employment_ts), na.action=NULL)
+
+plot1<-autoplot(resid(fit1), main="Detrended") +theme_bw()
+plot2<-autoplot(diff(employment_ts), main="First Difference") +theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+```{r}
+plot1 <- ggAcf(employment_ts, 48) + ggtitle("Original Data")+theme_bw()
+plot2 <- ggAcf(resid(fit1), 48) + ggtitle("Detrended Data")+theme_bw()
+plot3 <- ggAcf(diff(employment_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2, plot3, nrow=3)
+```
+
+The differenced data exhibits greater stationarity compared to both the original and detrended data. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the First Order Difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
+
+```{r}
+plot1 <- ggAcf(diff(employment_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+plot2 <- ggAcf(diff(diff(employment_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
+
+grid.arrange(plot1, plot2, nrow=2)
+```
+
+The plot above clearly demonstrates that Second Order Differencing effectively renders the data stationary, which is a crucial prerequisite for accurate modeling.
+
+### U.S. Freight Transportation Services Index
+```{r}
+require(gridExtra)
+fit2 = lm(tsi_ts~time(tsi_ts), na.action=NULL)
+
+plot1<-autoplot(resid(fit2), main="Detrended") +theme_bw()
+plot2<-autoplot(diff(tsi_ts), main="First Difference") +theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+```{r}
+plot1 <- ggAcf(tsi_ts, 48) + ggtitle("Original Data")+theme_bw()
+plot2 <- ggAcf(resid(fit2), 48) + ggtitle("Detrended Data")+theme_bw()
+plot3 <- ggAcf(diff(tsi_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2, plot3,nrow=3)
+```
+
+From both the original plots and the ACF plots, it’s evident that the differenced data exhibits greater stationarity compared to the original data and the detrended data. The ACF plot of the differenced data shows a significant drop-off, indicating a lack of autocorrelation beyond those lags, which is characteristic of stationary data. In contrast, the detrended data still retains substantial correlation, resembling the patterns observed in the original data.
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+require(gridExtra)
+fit3 = lm(air_ts~time(air_ts), na.action=NULL)
+
+plot1<-autoplot(resid(fit3), main="Detrended") +theme_bw()
+plot2<-autoplot(diff(air_ts), main="First Difference") +theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+```{r}
+plot1 <- ggAcf(air_ts, 48) + ggtitle("Original Data")+theme_bw()
+plot2 <- ggAcf(resid(fit3), 48) + ggtitle("Detrended Data")+theme_bw()
+plot3 <- ggAcf(diff(air_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2, plot3,nrow=3)
+```
+
+The detrended and differenced data exhibit greater stationarity compared to the original data. This improvement is evident in the ACF plot of the differenced data and detrended data, both of which show a significant drop-off, indicating a lack of autocorrelation beyond those lags. This drop-off is characteristic of stationary data.
+
+### UPS Stock Price
+
+```{r}
+require(gridExtra)
+fit4 = lm(ups_ts~time(ups_ts), na.action=NULL)
+
+plot1<-autoplot(resid(fit4), main="Detrended") +theme_bw()
+plot2<-autoplot(diff(ups_ts), main="First Difference") +theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+```{r}
+plot1 <- ggAcf(ups_ts, 48) + ggtitle("Original Data")+theme_bw()
+plot2 <- ggAcf(resid(fit4), 48) + ggtitle("Detrended Data")+theme_bw()
+plot3 <- ggAcf(diff(ups_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2, plot3,nrow=3)
+```
+
+The differenced data exhibits greater stationarity compared to both the original and detrended data. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the First Order Difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
+
+```{r}
+plot1 <- ggAcf(diff(ups_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+plot2 <- ggAcf(diff(diff(ups_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
+
+grid.arrange(plot1, plot2, nrow=2)
+```
+
+:::
+
+
+
+## Moving Average Smoothing
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+
+ma3 <- autoplot(canada_ts, series="Data") +
+  autolayer(ma(canada_ts,3), series="3-MA") +
+  xlab("Date") + ylab("Value(billions)") +
+  ggtitle("MSA for U.S.-Canada Freight Value") +
+  scale_colour_manual(values=c("Data"="grey50","3-MA"="red"),
+                      breaks=c("Data","3-MA"))
+
+ma7 <- autoplot(canada_ts, series="Data") +
+  autolayer(ma(canada_ts,7), series="7-MA") +
+  xlab("Date") + ylab("Value(billions)") +
+  ggtitle("MSA for U.S.-Canada Freight Value") +
+  scale_colour_manual(values=c("Data"="grey50","7-MA"="red"),
+                      breaks=c("Data","7-MA"))
+
+
+ma11 <- autoplot(canada_ts, series="Data") +
+  autolayer(ma(canada_ts,11), series="11-MA") +
+  xlab("Date") + ylab("Value(billions)") +
+  ggtitle("MSA for U.S.-Canada Freight Value") +
+  scale_colour_manual(values=c("Data"="grey50","11-MA"="red"),
+                      breaks=c("Data","11-MA"))
+
+ma25 <- autoplot(canada_ts, series="Data") +
+  autolayer(ma(canada_ts, 25), series="25-MA") +
+  xlab("Date") + ylab("Value(billions)") +
+  ggtitle("MSA for U.S.-Canada Freight Value") +
+  scale_colour_manual(values=c("Data"="grey50","25-MA"="red"),
+                      breaks=c("Data","25-MA"))
+
+grid.arrange(ma3, ma7, ma11, ma25, nrow = 2, ncol=2)
+
+```
+
+In addition to the original data, I incorporated three moving average windows: short-term windows of moving averages of 3, two medium-term moving averages of 7 and 11, and finally, the long-term moving average of 25. After careful analysis, it became evident that the 3-MA window didn't exhibit sufficient change from the original data, while the 25-MA excessively smoothed the data. The most suitable choice for all the moving averages in this series appears to be the 7-MA window. It strikes a balance between capturing important fluctuations and smoothing the data, making it the optimal choice for this dataset.
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+
+ma3 <- autoplot(employment_ts, series="Data") +
+  autolayer(ma(employment_ts,3), series="3-MA") +
+  xlab("Date") + ylab("Employment") +
+  ggtitle("MSA for U.S. Air Transportation Employment") +
+  scale_colour_manual(values=c("Data"="grey50","3-MA"="red"),
+                      breaks=c("Data","3-MA"))
+
+ma7 <- autoplot(employment_ts, series="Data") +
+  autolayer(ma(employment_ts,7), series="7-MA") +
+  xlab("Date") + ylab("Employment") +
+  ggtitle("MSA for U.S. Air Transportation Employment") +
+  scale_colour_manual(values=c("Data"="grey50","7-MA"="red"),
+                      breaks=c("Data","7-MA"))
+
+
+ma11 <- autoplot(employment_ts, series="Data") +
+  autolayer(ma(employment_ts,11), series="11-MA") +
+  xlab("Date") + ylab("Employment") +
+  ggtitle("MSA for U.S. Air Transportation Employment") +
+  scale_colour_manual(values=c("Data"="grey50","11-MA"="red"),
+                      breaks=c("Data","11-MA"))
+
+ma25 <- autoplot(employment_ts, series="Data") +
+  autolayer(ma(employment_ts, 25), series="25-MA") +
+  xlab("Date") + ylab("Employment") +
+  ggtitle("MSA for U.S. Air Transportation Employment") +
+  scale_colour_manual(values=c("Data"="grey50","25-MA"="red"),
+                      breaks=c("Data","25-MA"))
+
+grid.arrange(ma3, ma7, ma11, ma25, nrow = 2, ncol=2)
+```
+
+In addition to the original data, I incorporated three moving average windows: short-term windows of moving averages of 3, two medium-term moving averages of 7 and 11, and finally, the long-term moving average of 25. Upon analysis, it was observed that the 3-MA window didn't exhibit sufficient change from the original data, while the 25-MA excessively smoothed the data. The most suitable choice for all the moving averages in this series appears to be the 11-MA window. It strikes a balance between capturing important fluctuations and smoothing the data, making it the optimal choice for this dataset. 
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+
+ma3 <- autoplot(tsi_ts, series="Data") +
+  autolayer(ma(tsi_ts,3), series="3-MA") +
+  xlab("Date") + ylab("TSI") +
+  ggtitle("MSA for U.S. Freight TSI") +
+  scale_colour_manual(values=c("Data"="grey50","3-MA"="red"),
+                      breaks=c("Data","3-MA"))
+
+ma7 <- autoplot(tsi_ts, series="Data") +
+  autolayer(ma(tsi_ts,7), series="7-MA") +
+  xlab("Date") + ylab("TSI") +
+  ggtitle("MSA for U.S. Freight TSI") +
+  scale_colour_manual(values=c("Data"="grey50","7-MA"="red"),
+                      breaks=c("Data","7-MA"))
+
+
+ma11 <- autoplot(tsi_ts, series="Data") +
+  autolayer(ma(tsi_ts,11), series="11-MA") +
+  xlab("Date") + ylab("TSI") +
+  ggtitle("MSA for U.S. Freight TSI") +
+  scale_colour_manual(values=c("Data"="grey50","11-MA"="red"),
+                      breaks=c("Data","11-MA"))
+
+ma25 <- autoplot(tsi_ts, series="Data") +
+  autolayer(ma(tsi_ts, 25), series="25-MA") +
+  xlab("Date") + ylab("TSI") +
+  ggtitle("MSA for U.S. Freight TSI") +
+  scale_colour_manual(values=c("Data"="grey50","25-MA"="red"),
+                      breaks=c("Data","25-MA"))
+
+grid.arrange(ma3, ma7, ma11, ma25, nrow = 2, ncol=2)
+```
+
+In addition to the original data, I incorporated three moving average windows: short-term windows of moving averages of 3, two medium-term moving averages of 7 and 11, and finally, the long-term moving average of 25. Upon analysis, it was observed that the 3-MA window didn't exhibit sufficient change from the original data, while the 25-MA excessively smoothed the data. The most suitable choice for all the moving averages in this series appears to be the 7-MA window. It strikes a balance between capturing important fluctuations and smoothing the data, making it the optimal choice for this dataset.
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+#| warning: false
+
+ma3 <- autoplot(air_ts, series="Data") +
+  autolayer(ma(air_ts,3), series="3-MA") +
+  xlab("Date") + ylab("per ton-mile (current cents)") +
+  ggtitle("MSA for U.S. Domestic Air Carrier Average Freight Revenue") +
+  scale_colour_manual(values=c("Data"="grey50","3-MA"="red"),
+                      breaks=c("Data","3-MA"))
+
+ma7 <- autoplot(air_ts, series="Data") +
+  autolayer(ma(air_ts,7), series="7-MA") +
+  xlab("Date") + ylab("per ton-mile (current cents)") +
+  ggtitle("MSA for U.S. Domestic Air Carrier Average Freight Revenue") +
+  scale_colour_manual(values=c("Data"="grey50","7-MA"="red"),
+                      breaks=c("Data","7-MA"))
+
+
+ma11 <- autoplot(air_ts, series="Data") +
+  autolayer(ma(air_ts,11), series="11-MA") +
+  xlab("Date") + ylab("per ton-mile (current cents)") +
+  ggtitle("MSA for U.S. Domestic Air Carrier Average Freight Revenue") +
+  scale_colour_manual(values=c("Data"="grey50","11-MA"="red"),
+                      breaks=c("Data","11-MA"))
+
+ma15 <- autoplot(air_ts, series="Data") +
+  autolayer(ma(air_ts, 15), series="15-MA") +
+  xlab("Date") + ylab("per ton-mile (current cents)") +
+  ggtitle("MSA for U.S. Domestic Air Carrier Average Freight Revenue") +
+  scale_colour_manual(values=c("Data"="grey50","15-MA"="red"),
+                      breaks=c("Data","15-MA"))
+
+grid.arrange(ma3, ma7, ma11, ma15, nrow = 2, ncol=2)
+```
+
+In addition to the original data, I incorporated three moving average windows: short-term windows of moving averages of 3, two medium-term moving averages of 7 and 11, and finally, the long-term moving average of 15. Upon analysis, it became apparent that the best choice for all the moving averages in this series is the 3-MA window. The other moving averages tend to excessively smooth the data, whereas the 3-MA effectively balances smoothing while preserving important fluctuations.  
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+
+ma3 <- autoplot(ups_ts, series="Data") +
+  autolayer(ma(ups_ts,3), series="3-MA") +
+  xlab("Date") + ylab("Stock Price") +
+  ggtitle("MSA for UPS Stock Price") +
+  scale_colour_manual(values=c("Data"="grey50","3-MA"="red"),
+                      breaks=c("Data","3-MA"))
+
+ma11 <- autoplot(ups_ts, series="Data") +
+  autolayer(ma(ups_ts,11), series="11-MA") +
+  xlab("Date") + ylab("Stock Price") +
+  ggtitle("MSA for UPS Stock Price") +
+  scale_colour_manual(values=c("Data"="grey50","11-MA"="red"),
+                      breaks=c("Data","11-MA"))
+
+ma25 <- autoplot(ups_ts, series="Data") +
+  autolayer(ma(ups_ts, 25), series="25-MA") +
+  xlab("Date") + ylab("Stock Price") +
+  ggtitle("MSA for UPS Stock Price") +
+  scale_colour_manual(values=c("Data"="grey50","25-MA"="red"),
+                      breaks=c("Data","25-MA"))
+
+ma37 <- autoplot(ups_ts, series="Data") +
+  autolayer(ma(ups_ts,37), series="37-MA") +
+  xlab("Date") + ylab("Stock Price") +
+  ggtitle("MSA for UPS Stock Price") +
+  scale_colour_manual(values=c("Data"="grey50","37-MA"="red"),
+                      breaks=c("Data","37-MA"))
+
+grid.arrange(ma3, ma11, ma25, ma37, nrow = 2, ncol=2)
+```
+
+In addition to the original data, I opted to incorporate three moving average windows: short-term windows of moving averages of 3, two medium-term moving averages of 11, and finally, the long-term moving averages of 25 and 37. Upon analysis, it became apparent that the 3-MA window failed to capture significant changes from the original data, while the 37-MA window excessively smoothed the data. Among the options explored, the 25-MA window emerged as the most optimal choice for all moving averages in this series. 
+
+:::

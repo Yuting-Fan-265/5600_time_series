@@ -70,26 +70,39 @@ This plot visualizes the U.S. domestic freight transport weights by mode from 20
 
 ### U.S. Total freight Moved by Distance
 ```{r}
-df <- read.csv("data/clean_data/13distance_us.csv")
-df <- df[df$Measure.Names=='% of Total ton-miles (millions)',]
-df$Measure.Values = round(df$Measure.Values*100,1)
+#| warning: false
+library(plotly)
 
-# Create the bar plot
-TS3 <- plot_ly(df, x = ~Distance.band..miles., y = ~`Measure.Values`, text = ~`Measure.Values`, textposition = 'auto', frame = ~Year, type = 'bar') %>%
+# Read in the CSV file
+df <- read.csv("data/clean_data/13distance_us.csv")
+
+# Filter the data for the desired measures
+df <- df[df$Measure.Names == '% of Total Value (millions of 2017 $)' | df$Measure.Names == '% of Total Tons (thousands)', ]
+
+# Round the Measure.Values to one decimal place and convert to percentages
+df$Measure.Values <- round(df$Measure.Values * 100, 1)
+
+# Create the plot using plot_ly
+TS3 <- plot_ly(df, x = ~Distance.band..miles., y = ~Measure.Values, 
+               text = ~paste0(Measure.Values, "%"), textposition = 'auto', 
+               frame = ~Year, type = 'bar', name = ~Measure.Names, color = ~Measure.Names,
+               colors = RColorBrewer::brewer.pal(length(unique(df$Measure.Names)), "Set2")) %>%
   
-  # Specify the y-axis range and title
-  layout(yaxis = list(title = "% of Total ton-miles (millions)"),
+  # Specify axis titles and formatting
+  layout(yaxis = list(title = "% of Total Value"),
          xaxis = list(title = "Distance (miles)", 
                       tickfont = list(family = 'Arial', color = 'black', size = 10)),
          title = 'Total freight moved by distance')
 
-
 # Display the plot
 TS3
 
+
 ```
 
-This plot illustrates the total freight movement by distance in the U.S. from 2017 to 2021. Analysis of the data highlights that freight movement within the distance ranges of 100-240 miles and 1000-1499 miles constitutes the majority, each contributing approximately 20% to the total freight movement in each year. In contrast, movement below 100 miles represents the smallest proportion, accounting for only around 5% of the total weight. Additionally, distances of 500-749 miles and 1500-2000 miles contribute approximately 8% each, while distances of 250-499 miles contribute around 15%. Other distance ranges contribute roughly 10% each to the total freight movement.
+This plot provides insights into the total freight movement across different distances within the United States from 2017 to 2021. Analysis of the data underscores a significant trend: freight movement within distances below 250 miles dominates the landscape, consistently contributing over 50% to the total values in millions and 70% to the total weights in tons of the freight movement each year.
+
+Conversely, transportation over distances exceeding 500 miles represents a smaller proportion, accounting for under 10% of both the total value and total weight each year. This disparity highlights the prevalence of shorter-distance freight movements compared to longer hauls, suggesting potential implications for logistics planning and infrastructure development.
 
 
 ## International Freight
@@ -121,7 +134,7 @@ df <- df[df$Trade.Type=='Total trade',]
 df <- df[df$Measure=='Millions of Short Tons',]
 
 fig <- plot_ly(df, x = ~Year, y = ~Value, name = ~Mode, type = 'scatter', mode = 'lines+markers',color = ~Mode) %>%
-layout(yaxis = list(title = "Weights(Millions of Short Tons)"),
+layout(yaxis = list(title = "Weights(Millions of Short Tons(2,000 pounds))"),
          title = "U.S. International Freight Transport Weights by Mode")
 fig
 ```
@@ -160,11 +173,11 @@ In contrast, for neighboring countries such as Canada and Mexico, truck transpor
 ## Contribution to the U.S. Economy
 
 ::: panel-tabset
-
 ### Gross domestic product (GDP) Attributed by Freight Mode
 
 ```{r}
 #| warning: false
+#| fig-cap: "**Notes:** Household transportation covers transportation that households provide for themselves with vehicles. Other transportation includes: pipeline, transit and ground passenger transportation; sightseeing transportation and transportation support; courier and messenger services; and warehousing and storage."
 df <- read.csv("data/clean_data/31GDP.csv")
 # Group by Year and Mode, calculate the sum of GDP within each group
 df1 <- df %>%
