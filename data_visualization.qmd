@@ -83,8 +83,7 @@ df <- df[df$Measure.Names == '% of Total Value (millions of 2017 $)' | df$Measur
 df$Measure.Values <- round(df$Measure.Values * 100, 1)
 
 # Create the plot using plot_ly
-TS3 <- plot_ly(df, x = ~Distance.band..miles., y = ~Measure.Values, 
-               text = ~paste0(Measure.Values, "%"), textposition = 'auto', 
+TS3 <- plot_ly(df, x = ~Distance.band..miles., y = ~Measure.Values,  
                frame = ~Year, type = 'bar', name = ~Measure.Names, color = ~Measure.Names,
                colors = RColorBrewer::brewer.pal(length(unique(df$Measure.Names)), "Set2")) %>%
   

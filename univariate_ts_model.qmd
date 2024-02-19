@@ -8,3 +8,676 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{r}
+#| include: false
+library(tidyverse)
+library(ggplot2)
+library(forecast)
+library(astsa) 
+library(xts)
+library(tseries)
+library(fpp2)
+library(fma)
+library(lubridate)
+library(TSstudio)
+library(quantmod)
+library(tidyquant)
+library(plotly)
+library(gridExtra)               
+library(zoo)   
+```
+
+```{r}
+canada <- read.csv("data/clean_data/24monthly_canada_freight.csv")
+canada <- canada[,c("Date","Value")]
+canada_ts <- ts(canada$Value, start = decimal_date(as.Date("2006-01-01", format = "%Y-%m-%d")), end = decimal_date(as.Date("2023-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+
+employment <- read.csv("data/clean_data/32monthly_employment.csv")
+employment <- employment[,c("Date","Transportation.Employment...Air.Transportation")]
+employment_ts <- ts(employment$Transportation.Employment...Air.Transportation, start = decimal_date(as.Date("2005-01-01", format = "%Y-%m-%d")), end = decimal_date(as.Date("2024-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+
+tsi <- read.csv("data/clean_data/35monthly_TSI.csv")
+tsi_ts <- ts(tsi$Transportation.Services.Index...Freight, start = decimal_date(as.Date("2000-01-01", format = "%Y-%m-%d")), end = decimal_date(as.Date("2023-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+
+air <- read.csv("data/clean_data/33revenue.csv")
+air <- air[air$Mode=="Air carrier, domestic",c("Year","Value")]
+air <- air[order(air$Year), ]
+air_ts <- ts(air$Value, start = decimal_date(as.Date("2000-01-01", format = "%Y-%m-%d")), end = decimal_date(as.Date("2021-01-01", format = "%Y-%m-%d")), frequency = 1)
+
+
+ups <- getSymbols("UPS",auto.assign = FALSE, from = "2017-01-01", to = "2024-01-01",src="yahoo") 
+ups=data.frame(ups)
+ups <- data.frame(ups,rownames(ups))
+colnames(ups)[7] = "date"
+ups$date<-as.Date(ups$date,"%Y-%m-%d")
+ups_ts <- ts(ups$UPS.Adjusted, start = decimal_date(as.Date("2017-01-03", format = "%Y-%m-%d")), frequency = 365.25)
+
+```
+
+## ACF & PACF Plots
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+plot1<-ggAcf(canada_ts)+ggtitle("U.S.-Canada Freight Value ACF") + theme_bw()
+plot2<- ggPacf(canada_ts)+theme_bw()+ggtitle("U.S.-Canada Freight Value PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the ACF and PACF plots, we observe strong correlations at the beginning lags, gradually decreasing but remaining relatively strong until lag 12 in the ACF plot. In contrast, the PACF plot also exhibits strong correlation at lag 1, with moderate correlation extending until lag 13. The presence of significant correlations in both plots suggests that the time series data is non-stationary.
+
+### U.S. Air Transportation Employment
+
+```{r}
+plot1<-ggAcf(employment_ts)+ggtitle("U.S. Air Transportation Employment ACF") + theme_bw()
+plot2<- ggPacf(employment_ts)+theme_bw()+ggtitle("U.S. Air Transportation Employment PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the ACF plot, there is strong correlation observed from lag 1 to lag 16, with the correlation gradually decreasing but remaining relatively strong throughout. Similarly, the PACF plot shows strong correlation at lag 1 and lag 2. Given the presence of significant correlations in both plots, we can infer that the series is likely non-stationary.
+
+### U.S. Freight Transportation Services Index
+```{r}
+plot1<-ggAcf(tsi_ts)+ggtitle("U.S. Freight Transportation Services Index ACF") + theme_bw()
+plot2<- ggPacf(tsi_ts)+theme_bw()+ggtitle("U.S. Freight Transportation Services Index PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the ACF plot, there is a strong correlation observed at lag 1, with the correlation slightly decreasing but remaining relatively strong until the end of the plot. Similarly, the PACF plot shows strong correlation at lag 1. Given the presence of significant correlations in both plots, we can infer that the series is likely non-stationary. 
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+plot1<-ggAcf(air_ts)+ggtitle("U.S. Domestic Air Carrier Average Freight Revenue ACF") + theme_bw()
+plot2<- ggPacf(air_ts)+theme_bw()+ggtitle("U.S. Domestic Air Carrier Average Freight Revenue PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the description provided, the ACF plot demonstrates strong correlation at lag 1 and moderate correlation at lag 2 and lag 3. Additionally, the PACF plot exhibits strong correlation only at lag 1. Given the presence of significant correlations in both plots, particularly at lag 1, and moderate correlation at subsequent lags, we can infer that the series is likely non-stationary.
+
+### UPS Stock Price
+
+```{r}
+plot1<-ggAcf(ups_ts)+ggtitle("UPS Stock Price ACF") + theme_bw()
+plot2<- ggPacf(ups_ts)+theme_bw()+ggtitle("UPS Stock Price PACF")
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+Based on the provided information, it appears that the ACF plot shows strong correlation beginning at lag 1 and then slightly decreasing but remaining strong until the end. Additionally, the PACF plot exhibits strong correlation only at lag 1. Given the presence of significant correlations in both plots, particularly at lag 1, and the sustained autocorrelation observed in the ACF plot, we can infer that the series is likely non-stationary.
+
+:::
+
+## Adjusted Dickey-Fuller Test On Original Data
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+tseries::adf.test(canada_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+### U.S. Air Transportation Employment
+
+```{r}
+tseries::adf.test(employment_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+### U.S. Freight Transportation Services Index
+```{r}
+tseries::adf.test(tsi_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+tseries::adf.test(air_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+### UPS Stock Price
+
+```{r}
+tseries::adf.test(ups_ts)
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating non-stationarity. 
+
+:::
+
+
+
+## Differencing
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+require(gridExtra)
+fit = lm(canada_ts~time(canada_ts), na.action=NULL)
+
+plot1<-autoplot(diff(canada_ts), main="First Difference") +theme_bw()
+plot2 <- ggAcf(diff(canada_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+The differenced data exhibits greater stationarity compared to the originaldata. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the first order difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
+
+```{r}
+plot1 <- ggAcf(diff(canada_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+plot2 <- ggAcf(diff(diff(canada_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
+
+grid.arrange(plot1, plot2, nrow=2)
+```
+
+After applying a second-order difference, the ACF plot shows even stronger autocorrelation. Consequently, I have opted to retain the first-order difference data, as it achieves a satisfactory level of stationarity. 
+
+### U.S. Air Transportation Employment
+
+```{r}
+require(gridExtra)
+fit1 = lm(employment_ts~time(employment_ts), na.action=NULL)
+
+plot1<-autoplot(diff(employment_ts), main="First Difference") +theme_bw()
+plot2 <- ggAcf(diff(employment_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+The differenced data exhibits greater stationarity compared to the original data. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the first order difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
+
+```{r}
+plot1 <- ggAcf(diff(employment_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+plot2 <- ggAcf(diff(diff(employment_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
+
+grid.arrange(plot1, plot2, nrow=2)
+```
+
+The plot above clearly demonstrates that Second Order Differencing effectively renders the data stationary, which is a crucial prerequisite for accurate modeling.
+
+### U.S. Freight Transportation Services Index
+```{r}
+require(gridExtra)
+fit2 = lm(tsi_ts~time(tsi_ts), na.action=NULL)
+
+plot1<- autoplot(diff(tsi_ts), main="First Difference") +theme_bw()
+plot2 <- ggAcf(diff(tsi_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+From both the original plots and the ACF plots, it’s evident that the differenced data exhibits greater stationarity compared to the original data. The ACF plot of the differenced data shows a significant drop-off, indicating a lack of autocorrelation beyond those lags, which is characteristic of stationary data.
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+require(gridExtra)
+fit3 = lm(air_ts~time(air_ts), na.action=NULL)
+
+plot1<-autoplot(diff(air_ts), main="First Difference") +theme_bw()
+plot2 <- ggAcf(diff(air_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+The differenced data exhibit greater stationarity compared to the original data. This improvement is evident in the ACF plot of the differenced data, which show a significant drop-off, indicating a lack of autocorrelation beyond those lags. This drop-off is characteristic of stationary data.
+
+### UPS Stock Price
+
+```{r}
+require(gridExtra)
+fit4 = lm(ups_ts~time(ups_ts), na.action=NULL)
+
+plot1<-autoplot(diff(ups_ts), main="First Difference") +theme_bw()
+plot2 <- ggAcf(diff(ups_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+
+grid.arrange(plot1, plot2,nrow=2)
+```
+
+The differenced data exhibits greater stationarity compared to the original. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the First Order Difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
+
+```{r}
+plot1 <- ggAcf(diff(ups_ts), 48) + ggtitle("First Difference Data")+theme_bw()
+plot2 <- ggAcf(diff(diff(ups_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
+
+grid.arrange(plot1, plot2, nrow=2)
+```
+
+After performing a second-order difference, strong autocorrelation is observed at lag 1 in the ACF plot. Therefore, I have decided to retain the first-order difference data, as it achieves a satisfactory level of stationarity.
+
+:::
+
+
+
+## Adjusted Dickey-Fuller Test On Differencing Data
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+tseries::adf.test(diff(canada_ts))
+```
+
+With a p-value smaller than 0.05, there is sufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating stationarity. 
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+tseries::adf.test(diff(diff(employment_ts)))
+```
+
+With a p-value smaller than 0.05, there is sufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating stationarity.
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+tseries::adf.test(diff(tsi_ts))
+```
+
+With a p-value smaller than 0.05, there is sufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating stationarity. 
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+#| warning: false
+tseries::adf.test(diff(air_ts))
+```
+
+With a p-value higher than 0.05, there is insufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is non-stationary. This conclusion againest with the earlier analysis, where lack of autocorrelation was observed in the ACF and PACF plots, indicating the data almost stationary. 
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+tseries::adf.test(diff(ups_ts))
+```
+
+With a p-value smaller than 0.05, there is sufficient evidence to reject the null hypothesis at the 5% significance level. Consequently, we can conclude that our series is stationary. This conclusion aligns with the earlier analysis, where strong autocorrelation was observed in the ACF and PACF plots, indicating stationarity. 
+
+:::
+
+
+
+## ARIMA(p,d,q)
+
+In this section, we will identify potential values for the parameters p and q based on the significant lags observed in the PACF and ACF plots of the original data, respectively. Specifically, we will consider the most significant lags from the PACF plot for the value of p, and from the ACF plot for the value of q.
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+
+**p** = 0,1,2, **d** = 0,1,2, **q** = 0,1,2,3,4,5
+
+```{r}
+#| warning: false
+
+## empty list to store model fits
+
+ARMA_res <- list()
+
+## set counter
+cc <-1
+
+## loop over AR
+for(p in 0:2){
+  ## loop over MA
+  for(q in 0:5){
+    ## loop over I
+    for(d in 0:2){
+    
+      ARMA_res[[cc]]<-Arima(y=canada_ts,order = c(p,d,q), include.drift = TRUE)
+      cc<- cc+1
+    }
+  }
+}
+
+## get AIC values for model evaluation
+ARMA_AIC<-sapply(ARMA_res,function(x) x$aic)
+ARMA_res[[which(ARMA_AIC == min(ARMA_AIC))]]
+
+## get BIC values for model evaluation
+ARMA_BIC<-sapply(ARMA_res,function(x) x$bic)
+ARMA_res[[which(ARMA_BIC == min(ARMA_BIC))]]
+```
+
+The model with the lowest AIC and BIC is ARIMA(2,2,3).
+
+
+### U.S. Air Transportation Employment
+
+**p** = 0,1,2, **d** = 0,1,2, **q** = 0,1,2,3,4,5
+
+```{r}
+#| warning: false
+
+## empty list to store model fits
+
+ARMA_res <- list()
+
+## set counter
+cc <-1
+
+## loop over AR
+for(p in 0:2){
+  ## loop over MA
+  for(q in 0:5){
+    ## loop over I
+    for(d in 0:2){
+    
+      ARMA_res[[cc]]<-Arima(y=employment_ts,order = c(p,d,q), include.drift = TRUE)
+      cc<- cc+1
+    }
+  }
+}
+
+## get AIC values for model evaluation
+ARMA_AIC<-sapply(ARMA_res,function(x) x$aic)
+ARMA_res[[which(ARMA_AIC == min(ARMA_AIC))]]
+
+## get BIC values for model evaluation
+ARMA_BIC<-sapply(ARMA_res,function(x) x$bic)
+ARMA_res[[which(ARMA_BIC == min(ARMA_BIC))]]
+
+## get AICC values for model evaluation
+ARMA_AICC<-sapply(ARMA_res,function(x) x$aicc)
+ARMA_res[[which(ARMA_AICC == min(ARMA_AICC))]]
+```
+
+The model with the lowest AIC and BIC is ARIMA(2,2,3).
+
+
+### U.S. Freight Transportation Services Index
+
+**p** = 0,1, **d** = 0,1, **q** = 0,1,2,3,4,5
+
+```{r}
+#| warning: false
+
+## empty list to store model fits
+
+ARMA_res <- list()
+
+## set counter
+cc <-1
+
+## loop over AR
+for(p in 0:1){
+  ## loop over MA
+  for(q in 0:5){
+    ## loop over I
+    for(d in 0:1){
+    
+      ARMA_res[[cc]]<-Arima(y=tsi_ts,order = c(p,d,q), include.drift = TRUE)
+      cc<- cc+1
+    }
+  }
+}
+
+## get AIC values for model evaluation
+ARMA_AIC<-sapply(ARMA_res,function(x) x$aic)
+ARMA_res[[which(ARMA_AIC == min(ARMA_AIC))]]
+
+## get BIC values for model evaluation
+ARMA_BIC<-sapply(ARMA_res,function(x) x$bic)
+ARMA_res[[which(ARMA_BIC == min(ARMA_BIC))]]
+
+## get AICC values for model evaluation
+ARMA_AICC<-sapply(ARMA_res,function(x) x$aicc)
+ARMA_res[[which(ARMA_AICC == min(ARMA_AICC))]]
+```
+
+The model with the lowest AIC and BIC is ARIMA(0,1,3).
+
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+
+**p** = 0,1, **d** = 0,1, **q** = 0,1,2,3
+
+```{r}
+#| warning: false
+
+## empty list to store model fits
+
+ARMA_res <- list()
+
+## set counter
+cc <-1
+
+## loop over AR
+for(p in 0:1){
+  ## loop over MA
+  for(q in 0:3){
+    ## loop over I
+    for(d in 0:1){
+    
+      ARMA_res[[cc]]<-Arima(y=air_ts,order = c(p,d,q), include.drift = TRUE)
+      cc<- cc+1
+    }
+  }
+}
+
+## get AIC values for model evaluation
+ARMA_AIC<-sapply(ARMA_res,function(x) x$aic)
+ARMA_res[[which(ARMA_AIC == min(ARMA_AIC))]]
+
+## get BIC values for model evaluation
+ARMA_BIC<-sapply(ARMA_res,function(x) x$bic)
+ARMA_res[[which(ARMA_BIC == min(ARMA_BIC))]]
+```
+
+The model with the lowest AIC and BIC is ARIMA(0,1,1). 
+
+
+### UPS Stock Price
+
+**p** = 0,1, **d** = 0,1,2, **q** = 0,1,2,3,4,5
+
+```{r}
+#| warning: false
+
+## empty list to store model fits
+
+ARMA_res <- list()
+
+## set counter
+cc <-1
+
+## loop over AR
+for(p in 0:1){
+  ## loop over MA
+  for(q in 0:5){
+    ## loop over I
+    for(d in 0:2){
+    
+      ARMA_res[[cc]]<-Arima(y=ups_ts,order = c(p,d,q), include.drift = TRUE)
+      cc<- cc+1
+    }
+  }
+}
+
+## get AIC values for model evaluation
+ARMA_AIC<-sapply(ARMA_res,function(x) x$aic)
+ARMA_res[[which(ARMA_AIC == min(ARMA_AIC))]]
+
+## get BIC values for model evaluation
+ARMA_BIC<-sapply(ARMA_res,function(x) x$bic)
+ARMA_res[[which(ARMA_BIC == min(ARMA_BIC))]]
+```
+
+The model with the lowest AIC and BIC is ARIMA(0,1,0).
+
+:::
+
+
+
+## Fit Best ARIMA(p,d,q) & Diagnostics
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+
+ARMA_res<-Arima(y=canada_ts,order = c(2,2,3), include.drift = TRUE)
+summary(ARMA_res)
+```
+
+**Equation**: $x_t= -1.731*x_{t-1} -0.9992*x_{t-2} +w_t +0.7457*w_{t-1} -0.7457*w_{t-2} -w_{t-3}$
+
+```{r}
+#| warning: false
+output <- capture.output(sarima(canada_ts,2,2,3))
+
+cat(output[120:131], output[length(output)], sep = "\n") 
+```
+
+Upon inspection of the time plot of the standardized residuals above, no discernible patterns are evident. However, the ACF plot of the standardized residuals indicates some remaining correlation. The normal Q-Q plot of the residuals suggests that the assumption of normality is reasonable, with the exception of potential outliers. The results of the Ljung-Box test reveal values below the 0.05 (5% significance) threshold, indicating the presence of some significant correlation remaining. Despite these findings, it appears that the model has been improved.
+
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+
+ARMA_res<-Arima(y=employment_ts,order = c(2,2,3), include.drift = TRUE)
+summary(ARMA_res)
+```
+
+**Equation**: $x_t= 0.4253*x_{t-1} -0.5218*x_{t-2} +w_t -0.9902*w_{t-1} +0.3708*w_{t-2} -0.3806*w_{t-3}$
+
+```{r}
+#| warning: false
+output <- capture.output(sarima(employment_ts,2,2,3))
+cat(output[55:66], output[length(output)], sep = "\n") 
+```
+
+Upon examining the time plot of the standardized residuals, no discernible patterns are evident. Additionally, the ACF plot of the standardized residuals reveals no significant departures from the model assumptions, as no significant lags are observed. The normal Q-Q plot of the residuals indicates that the assumption of normality is reasonable, with the exception of possible outliers. Furthermore, the Ljung-Box test yields favorable values exceeding 0.05, suggesting the absence of significant correlation and indicating a well-fitted model. Overall, these observations suggest that the model fits the data well.
+
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+
+ARMA_res<-Arima(y=tsi_ts,order = c(0,1,3), include.drift = TRUE)
+summary(ARMA_res)
+```
+
+**Equation**: $x_t= w_t -0.07*w_{t-1} -0.0927*w_{t-2} +0.1035*w_{t-3} +0.1127$
+
+```{r}
+#| warning: false
+output <- capture.output(sarima(tsi_ts,0,1,3))
+cat(output[21:31], output[length(output)], sep = "\n") 
+```
+
+Upon examining the time plot of the standardized residuals, no discernible patterns are evident. Additionally, the ACF plot of the standardized residuals reveals no significant departures from the model assumptions, as no significant lags are observed. The normal Q-Q plot of the residuals indicates that the assumption of normality is reasonable, with the exception of possible outliers. Furthermore, the Ljung-Box test yields favorable values exceeding 0.05, suggesting the absence of significant correlation and indicating a well-fitted model. Overall, these observations suggest that the model fits the data well. 
+
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+#| warning: false
+
+ARMA_res<-Arima(y=air_ts,order = c(0,1,1), include.drift = TRUE)
+summary(ARMA_res)
+```
+
+**Equation**: $x_t= w_t +w_{t-1} -0.151$
+
+```{r}
+#| warning: false
+output <- capture.output(sarima(air_ts,0,1,1))
+cat(output[30:38], output[length(output)], sep = "\n") 
+```
+
+Upon examining the time plot of the standardized residuals, no discernible patterns are evident. Additionally, the ACF plot of the standardized residuals reveals no significant departures from the model assumptions, as no significant lags are observed. The normal Q-Q plot of the residuals indicates that the assumption of normality is reasonable, with the exception of possible outliers. Furthermore, the Ljung-Box test yields favorable values exceeding 0.05, suggesting the absence of significant correlation and indicating a well-fitted model. Overall, these observations suggest that the model fits the data well.
+
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+
+ARMA_res<-Arima(y=ups_ts,order = c(0,1,0), include.drift = TRUE)
+summary(ARMA_res)
+```
+
+**Equation**: $x_t= 0.0366$
+
+```{r}
+#| warning: false
+output <- capture.output(sarima(ups_ts,0,1,0))
+cat(output[11:18], output[length(output)], sep = "\n") 
+```
+
+Upon examining the time plot of the standardized residuals, no discernible patterns are evident. Additionally, the ACF plot of the standardized residuals reveals no significant departures from the model assumptions, as no significant lags are observed. The normal Q-Q plot of the residuals indicates that the assumption of normality is reasonable, with the exception of possible outliers. Furthermore, the Ljung-Box test yields favorable values exceeding 0.05, suggesting the absence of significant correlation and indicating a well-fitted model. Overall, these observations suggest that the model fits the data well.
+
+:::
+
+
+
+## Auto ARIMA
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+auto.arima(canada_ts)
+
+```
+
+The best model provided by Auto ARIMA differs from the best model identified in the previous step. This discrepancy suggests that the Auto ARIMA model may offer a better fit compared to the previously chosen model, which was not optimal. It is plausible that this dataset exhibits strong seasonality, which ARIMA alone may struggle to capture adequately. Therefore, considering SARIMA models might be necessary to effectively model the seasonality present in the data.
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+auto.arima(employment_ts)
+
+```
+
+The discrepancy between the best model provided by Auto ARIMA and the best model identified in the previous step raises concerns about its reliability. Auto ARIMA solely relies on minimizing AIC/BIC values without considering lag instances of high correlation as reflected in the ACF/PACF plots. This approach may result in overfitting and may not capture the underlying patterns in the data accurately.
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+auto.arima(tsi_ts)
+
+```
+
+The best model provided by Auto ARIMA differs from the best model identified in the previous step. This discrepancy suggests that the Auto ARIMA model may offer a better fit compared to the previously chosen model, which was not optimal. It is plausible that this dataset exhibits strong seasonality, which ARIMA alone may struggle to capture adequately. Therefore, considering SARIMA models might be necessary to effectively model the seasonality present in the data.
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+#| warning: false
+auto.arima(air_ts)
+
+```
+
+The discrepancy between the best model provided by Auto ARIMA and the best model identified in the previous step raises concerns about its reliability. Auto ARIMA solely relies on minimizing AIC/BIC values without considering lag instances of high correlation as reflected in the ACF/PACF plots. This approach may result in overfitting and may not capture the underlying patterns in the data accurately.
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+auto.arima(ups_ts)
+
+```
+
+The best model Auto ARIMA provide is the same with the best model from the step above.
+
+:::

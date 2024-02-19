@@ -8,3 +8,53 @@ editor_options:
   chunk_output_type: console
 ---
 
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+#canada_ts
+
+```
+
+ 
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+#employment_ts
+
+```
+
+
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+#tsi_ts
+
+```
+
+ 
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+#| warning: false
+#air_ts
+
+```
+
+ 
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+#ups_ts
+
+```
+
+ 
+
+:::
