@@ -255,8 +255,8 @@ Based on the description provided, the ACF plot demonstrates strong correlation 
 ### UPS Stock Price
 
 ```{r}
-plot1<-ggAcf(ups_ts)+ggtitle("UPS Stock Price ACF") + theme_bw()
-plot2<- ggPacf(ups_ts)+theme_bw()+ggtitle("UPS Stock Price PACF")
+plot1<-ggAcf(ups_ts, lag=100)+ggtitle("UPS Stock Price ACF") + theme_bw()
+plot2<- ggPacf(ups_ts, lag=100)+theme_bw()+ggtitle("UPS Stock Price PACF")
 
 grid.arrange(plot1, plot2,nrow=2)
 ```
@@ -344,6 +344,7 @@ plot2 <- ggAcf(diff(diff(canada_ts)), 48) + ggtitle("Second Differenced Data") +
 grid.arrange(plot1, plot2, nrow=2)
 ```
 
+The second differenced ACF plot shows that the data be over differenced.
 
 ### U.S. Air Transportation Employment
 
@@ -447,6 +448,7 @@ plot2 <- ggAcf(diff(diff(ups_ts)), 48) + ggtitle("Second Differenced Data") + th
 grid.arrange(plot1, plot2, nrow=2)
 ```
 
+The second differenced ACF plot shows that the data be over differenced.
 :::
 
 

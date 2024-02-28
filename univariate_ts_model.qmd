@@ -105,8 +105,8 @@ Based on the description provided, the ACF plot demonstrates strong correlation 
 ### UPS Stock Price
 
 ```{r}
-plot1<-ggAcf(ups_ts)+ggtitle("UPS Stock Price ACF") + theme_bw()
-plot2<- ggPacf(ups_ts)+theme_bw()+ggtitle("UPS Stock Price PACF")
+plot1<-ggAcf(ups_ts, lag=100)+ggtitle("UPS Stock Price ACF") + theme_bw()
+plot2<- ggPacf(ups_ts, lag=100)+theme_bw()+ggtitle("UPS Stock Price PACF")
 
 grid.arrange(plot1, plot2,nrow=2)
 ```
@@ -184,7 +184,7 @@ plot2 <- ggAcf(diff(diff(canada_ts)), 48) + ggtitle("Second Differenced Data") +
 grid.arrange(plot1, plot2, nrow=2)
 ```
 
-After applying a second-order difference, the ACF plot shows even stronger autocorrelation. Consequently, I have opted to retain the first-order difference data, as it achieves a satisfactory level of stationarity. 
+After applying a second-order difference, the ACF plot shows even stronger autocorrelation. The second differenced ACF plot shows that the data be over differenced. Consequently, I have opted to retain the first-order difference data, as it achieves a satisfactory level of stationarity. 
 
 ### U.S. Air Transportation Employment
 
@@ -256,7 +256,7 @@ plot2 <- ggAcf(diff(diff(ups_ts)), 48) + ggtitle("Second Differenced Data") + th
 grid.arrange(plot1, plot2, nrow=2)
 ```
 
-After performing a second-order difference, strong autocorrelation is observed at lag 1 in the ACF plot. Therefore, I have decided to retain the first-order difference data, as it achieves a satisfactory level of stationarity.
+After performing a second-order difference, strong autocorrelation is observed at lag 1 in the ACF plot. The second differenced ACF plot shows that the data be over differenced. Therefore, I have decided to retain the first-order difference data, as it achieves a satisfactory level of stationarity.
 
 :::
 
@@ -532,8 +532,8 @@ The model with the lowest AIC and BIC is ARIMA(0,1,0).
 ```{r}
 #| warning: false
 
-ARMA_res<-Arima(y=canada_ts,order = c(2,2,3), include.drift = TRUE)
-summary(ARMA_res)
+ARMA_res_canada<-Arima(y=canada_ts,order = c(2,2,3), include.drift = TRUE)
+summary(ARMA_res_canada)
 ```
 
 **Equation**: $x_t= -1.731*x_{t-1} -0.9992*x_{t-2} +w_t +0.7457*w_{t-1} -0.7457*w_{t-2} -w_{t-3}$
@@ -553,8 +553,8 @@ Upon inspection of the time plot of the standardized residuals above, no discern
 ```{r}
 #| warning: false
 
-ARMA_res<-Arima(y=employment_ts,order = c(2,2,3), include.drift = TRUE)
-summary(ARMA_res)
+ARMA_res_employment<-Arima(y=employment_ts,order = c(2,2,3), include.drift = TRUE)
+summary(ARMA_res_employment)
 ```
 
 **Equation**: $x_t= 0.4253*x_{t-1} -0.5218*x_{t-2} +w_t -0.9902*w_{t-1} +0.3708*w_{t-2} -0.3806*w_{t-3}$
@@ -572,8 +572,8 @@ Upon examining the time plot of the standardized residuals, no discernible patte
 ```{r}
 #| warning: false
 
-ARMA_res<-Arima(y=tsi_ts,order = c(0,1,3), include.drift = TRUE)
-summary(ARMA_res)
+ARMA_res_tsi<-Arima(y=tsi_ts,order = c(0,1,3), include.drift = TRUE)
+summary(ARMA_res_tsi)
 ```
 
 **Equation**: $x_t= w_t -0.07*w_{t-1} -0.0927*w_{t-2} +0.1035*w_{t-3} +0.1127$
@@ -591,8 +591,8 @@ Upon examining the time plot of the standardized residuals, no discernible patte
 ```{r}
 #| warning: false
 
-ARMA_res<-Arima(y=air_ts,order = c(0,1,1), include.drift = TRUE)
-summary(ARMA_res)
+ARMA_res_air<-Arima(y=air_ts,order = c(0,1,1), include.drift = TRUE)
+summary(ARMA_res_air)
 ```
 
 **Equation**: $x_t= w_t +w_{t-1} -0.151$
@@ -611,8 +611,8 @@ Upon examining the time plot of the standardized residuals, no discernible patte
 ```{r}
 #| warning: false
 
-ARMA_res<-Arima(y=ups_ts,order = c(0,1,0), include.drift = TRUE)
-summary(ARMA_res)
+ARMA_res_ups<-Arima(y=ups_ts,order = c(0,1,0), include.drift = TRUE)
+summary(ARMA_res_ups)
 ```
 
 **Equation**: $x_t= 0.0366$
@@ -679,5 +679,272 @@ auto.arima(ups_ts)
 ```
 
 The best model Auto ARIMA provide is the same with the best model from the step above.
+
+:::
+
+
+
+## Forecasting
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+pred_canada <- forecast(ARMA_res_canada, 12)
+autoplot(pred_canada, xlab = "Date", ylab = "Billions", colour = "blue")+ggtitle('U.S.-Canada Freight Value Forecast') +theme_bw()
+```
+
+The blue line represents the forecast, while the two shades of purple depict the confidence intervals, with the darker shade representing the 95% interval and the lighter shade representing the 5% interval. As the confidence interval widens, indicating greater uncertainty in the forecast, the shaded region becomes wider.
+
+Examining the forecast plot, there is an initial surge in the monthly U.S.-Canada freight value, followed by a subsequent decline and another increase. Comparing the observed increasing seasonal fluctuations post-2020 to the forecasted fluctuations, it appears that the model accurately predicted the anticipated pattern.
+
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+pred_employment <- forecast(ARMA_res_employment, 12)
+autoplot(pred_employment, xlab = "Date", ylab = "Employment", colour = "blue")+ggtitle('U.S. Air Transportation Employment Forecast') +theme_bw()
+
+```
+
+The forecast plot illustrates a subtle decreasing trend in air transportation employment over the next 12 months. The colored bands depict the 95% confidence interval. However, the forecast appears overly smooth and lacks fluctuations. This suggests that the model may not adequately capture the inherent variability or fluctuations in the data.
+
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+pred_tsi <- forecast(ARMA_res_tsi, 12)
+autoplot(pred_tsi, xlab = "Date", ylab = "Transportation Services Index", colour = "blue")+ggtitle('U.S. Freight Transportation Services Index Forecast') +theme_bw()
+
+```
+
+The forecast plot indicates an ascending trend in the U.S. freight TSI over the ensuing 12 months. The colored bands delineate the 95% confidence interval. Nonetheless, the forecast appears excessively smooth, lacking the expected fluctuations. This suggests that the model might not adequately capture the inherent variability or fluctuations in the data.
+
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+#| warning: false
+pred_air <- forecast(ARMA_res_air, 5)
+autoplot(pred_air, xlab = "Date", ylab = "Freight revenue per ton-mile (current cents)", colour = "blue")+ggtitle('U.S. Domestic Air Carrier Average Freight Revenue Forecast') +theme_bw()
+
+```
+
+The forecast plot depicts a stagnant trend in the U.S. domestic air carrier average freight revenue over the upcoming five years. The colored bands represent the 95% confidence interval. However, the forecast appears excessively smooth, lacking any noticeable fluctuations. This suggests that the model might not adequately capture the inherent variability or fluctuations in the data.
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+pred_ups <- forecast(ARMA_res_ups, 50)
+autoplot(pred_ups, xlab = "Date", ylab = "Stock Price", colour = "blue")+ggtitle('UPS Stock Price Forecast') +theme_bw()
+
+```
+
+The forecast plot illustrates a rising trend in the UPS stock price over the forthcoming 50 days. The colored bands represent the 95% confidence interval. However, the forecast appears overly smooth, lacking noticeable fluctuations. This suggests that the model may not adequately capture the inherent variability or fluctuations in the stock price data.
+
+:::
+
+
+
+## ARIMA vs. Benchmark Methods
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+
+autoplot(canada_ts, xlab = "Date", ylab = "Billions") +
+  autolayer(meanf(canada_ts, h=12),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(canada_ts, h=12),
+            series="Naïve", PI=FALSE)+
+  autolayer(rwf(canada_ts, h=12, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(pred_canada, 
+            series="ARIMA",PI=FALSE) + ggtitle("U.S.-Canada Freight Value ARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the ARIMA model best captures the trend, closely aligning with the observed data. The drift methods exhibit a comparable trajectory for the forecast. In contrast, the Mean and Naive benchmark models notably underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(pred_canada)
+output2 <- accuracy(meanf(canada_ts, h=12))
+output3 <- accuracy(naive(canada_ts, h=12))
+output4 <- accuracy(rwf(canada_ts, drift=TRUE, h=12))
+
+output_list <- list(output1, output2, output3, output4)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("ARIMA", "Meanf", "Naive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the ARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the ARIMA model outperforms the benchmark models in terms of accuracy.
+
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+
+autoplot(employment_ts, xlab = "Date", ylab = "Employment") +
+  autolayer(meanf(employment_ts, h=12),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(employment_ts, h=12),
+            series="Naïve", PI=FALSE)+
+  autolayer(rwf(employment_ts, h=12, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(pred_employment, 
+            series="ARIMA",PI=FALSE) + ggtitle("U.S. Air Transportation Employment ARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the ARIMA, drift and Naive models exhibit a comparable trajectory for the forecast and best captures the trend, closely aligning with the observed data. In contrast, the Mean benchmark model notably underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(pred_employment)
+output2 <- accuracy(meanf(employment_ts, h=12))
+output3 <- accuracy(naive(employment_ts, h=12))
+output4 <- accuracy(rwf(employment_ts, drift=TRUE, h=12))
+
+output_list <- list(output1, output2, output3, output4)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("ARIMA", "Meanf", "Naive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the ARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the ARIMA model outperforms the benchmark models in terms of accuracy.
+
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+
+autoplot(tsi_ts, xlab = "Date", ylab = "Transportation Services Index") +
+  autolayer(meanf(tsi_ts, h=12),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(tsi_ts, h=12),
+            series="Naïve", PI=FALSE)+
+  autolayer(rwf(tsi_ts, h=12, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(pred_tsi, 
+            series="ARIMA",PI=FALSE) + ggtitle("U.S. Freight Transportation Services Index ARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the ARIMA model best captures the trend, closely aligning with the observed data. The drift methods exhibit a comparable trajectory for the forecast. In contrast, the Mean and Naive benchmark models notably underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(pred_tsi)
+output2 <- accuracy(meanf(tsi_ts, h=12))
+output3 <- accuracy(naive(tsi_ts, h=12))
+output4 <- accuracy(rwf(tsi_ts, drift=TRUE, h=12))
+
+output_list <- list(output1, output2, output3, output4)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("ARIMA", "Meanf", "Naive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the ARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the ARIMA model outperforms the benchmark models in terms of accuracy.
+
+
+### U.S. Domestic Air Carrier Average Freight Revenue
+```{r}
+#| warning: false
+autoplot(air_ts, xlab = "Date", ylab = "Freight revenue per ton-mile (current cents)") +
+  autolayer(meanf(air_ts, h=5),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(air_ts, h=5),
+            series="Naïve", PI=FALSE)+
+  autolayer(rwf(air_ts, h=5, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(pred_air, 
+            series="ARIMA",PI=FALSE) + ggtitle("U.S. Domestic Air Carrier Average Freight Revenue ARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the ARIMA model seems underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(pred_air)
+output2 <- accuracy(meanf(air_ts, h=12))
+output3 <- accuracy(naive(air_ts, h=12))
+output4 <- accuracy(rwf(air_ts, drift=TRUE, h=12))
+
+output_list <- list(output1, output2, output3, output4)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("ARIMA", "Meanf", "Naive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the ARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the ARIMA model outperforms the benchmark models in terms of accuracy.
+
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+
+autoplot(ups_ts, xlab = "Date", ylab = "Stock Price") +
+  autolayer(meanf(ups_ts, h=50),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(ups_ts, h=50),
+            series="Naïve", PI=FALSE)+
+  autolayer(rwf(ups_ts, h=50, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(pred_ups, 
+            series="ARIMA",PI=FALSE) + ggtitle("UPS Stock Price ARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the ARIMA, drift and Naive models exhibit a comparable trajectory for the forecast and best captures the trend, closely aligning with the observed data. In contrast, the Mean benchmark model notably underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(pred_ups)
+output2 <- accuracy(meanf(ups_ts, h=12))
+output3 <- accuracy(naive(ups_ts, h=12))
+output4 <- accuracy(rwf(ups_ts, drift=TRUE, h=12))
+
+output_list <- list(output1, output2, output3, output4)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("ARIMA", "Meanf", "Naive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the ARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the ARIMA model outperforms the benchmark models in terms of accuracy.
 
 :::
