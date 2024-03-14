@@ -57,6 +57,8 @@ ups_ts <- ts(ups$UPS.Adjusted, start = decimal_date(as.Date("2017-01-03", format
 
 ```
 
+# ARIMA
+
 ## ACF & PACF Plots
 
 ::: panel-tabset
@@ -173,6 +175,8 @@ plot1<-autoplot(diff(canada_ts), main="First Difference") +theme_bw()
 plot2 <- ggAcf(diff(canada_ts), 48) + ggtitle("First Difference Data")+theme_bw()
 
 grid.arrange(plot1, plot2,nrow=2)
+
+canada_ts %>% diff() %>% ggtsdisplay()
 ```
 
 The differenced data exhibits greater stationarity compared to the originaldata. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the first order difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
@@ -182,6 +186,8 @@ plot1 <- ggAcf(diff(canada_ts), 48) + ggtitle("First Difference Data")+theme_bw(
 plot2 <- ggAcf(diff(diff(canada_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
 
 grid.arrange(plot1, plot2, nrow=2)
+
+canada_ts %>% diff() %>% diff() %>% ggtsdisplay()
 ```
 
 After applying a second-order difference, the ACF plot shows even stronger autocorrelation. The second differenced ACF plot shows that the data be over differenced. Consequently, I have opted to retain the first-order difference data, as it achieves a satisfactory level of stationarity. 
@@ -196,6 +202,8 @@ plot1<-autoplot(diff(employment_ts), main="First Difference") +theme_bw()
 plot2 <- ggAcf(diff(employment_ts), 48) + ggtitle("First Difference Data")+theme_bw()
 
 grid.arrange(plot1, plot2,nrow=2)
+
+employment_ts %>% diff() %>% ggtsdisplay()
 ```
 
 The differenced data exhibits greater stationarity compared to the original data. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the first order difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
@@ -205,6 +213,8 @@ plot1 <- ggAcf(diff(employment_ts), 48) + ggtitle("First Difference Data")+theme
 plot2 <- ggAcf(diff(diff(employment_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
 
 grid.arrange(plot1, plot2, nrow=2)
+
+employment_ts %>% diff() %>% diff() %>% ggtsdisplay()
 ```
 
 The plot above clearly demonstrates that Second Order Differencing effectively renders the data stationary, which is a crucial prerequisite for accurate modeling.
@@ -218,6 +228,8 @@ plot1<- autoplot(diff(tsi_ts), main="First Difference") +theme_bw()
 plot2 <- ggAcf(diff(tsi_ts), 48) + ggtitle("First Difference Data")+theme_bw()
 
 grid.arrange(plot1, plot2,nrow=2)
+
+tsi_ts %>% diff() %>% ggtsdisplay()
 ```
 
 From both the original plots and the ACF plots, it’s evident that the differenced data exhibits greater stationarity compared to the original data. The ACF plot of the differenced data shows a significant drop-off, indicating a lack of autocorrelation beyond those lags, which is characteristic of stationary data.
@@ -231,6 +243,8 @@ plot1<-autoplot(diff(air_ts), main="First Difference") +theme_bw()
 plot2 <- ggAcf(diff(air_ts), 48) + ggtitle("First Difference Data")+theme_bw()
 
 grid.arrange(plot1, plot2,nrow=2)
+
+air_ts %>% diff() %>% ggtsdisplay()
 ```
 
 The differenced data exhibit greater stationarity compared to the original data. This improvement is evident in the ACF plot of the differenced data, which show a significant drop-off, indicating a lack of autocorrelation beyond those lags. This drop-off is characteristic of stationary data.
@@ -245,6 +259,8 @@ plot1<-autoplot(diff(ups_ts), main="First Difference") +theme_bw()
 plot2 <- ggAcf(diff(ups_ts), 48) + ggtitle("First Difference Data")+theme_bw()
 
 grid.arrange(plot1, plot2,nrow=2)
+
+ups_ts %>% diff() %>% ggtsdisplay(lag=48)
 ```
 
 The differenced data exhibits greater stationarity compared to the original. This improvement is evident in the ACF plot of the differenced data, which shows a significant drop-off, indicating a substantial reduction in autocorrelation beyond those lags. However, despite the improvement, the First Order Difference still shows some seasonality in the plot, suggesting that further differencing may be necessary to fully address the seasonality present in the data.
@@ -254,9 +270,11 @@ plot1 <- ggAcf(diff(ups_ts), 48) + ggtitle("First Difference Data")+theme_bw()
 plot2 <- ggAcf(diff(diff(ups_ts)), 48) + ggtitle("Second Differenced Data") + theme_bw()
 
 grid.arrange(plot1, plot2, nrow=2)
+
+ups_ts %>% diff() %>% diff() %>% ggtsdisplay(lag=48)
 ```
 
-After performing a second-order difference, strong autocorrelation is observed at lag 1 in the ACF plot. The second differenced ACF plot shows that the data be over differenced. Therefore, I have decided to retain the first-order difference data, as it achieves a satisfactory level of stationarity.
+After performing a second-order difference, strong negative autocorrelation is observed at lag 1 in the ACF plot. The second differenced ACF plot shows that the data be over differenced. Therefore, I have decided to retain the first-order difference data, as it achieves a satisfactory level of stationarity.
 
 :::
 
@@ -320,7 +338,7 @@ In this section, we will identify potential values for the parameters p and q ba
 
 ### U.S.-Canada Freight Value
 
-**p** = 0,1,2, **d** = 0,1,2, **q** = 0,1,2,3,4,5
+**p** = 0,1,2 **d** = 0,1,2, **q** = 0,1,2,3
 
 ```{r}
 #| warning: false
@@ -335,10 +353,9 @@ cc <-1
 ## loop over AR
 for(p in 0:2){
   ## loop over MA
-  for(q in 0:5){
+  for(q in 0:3){
     ## loop over I
     for(d in 0:2){
-    
       ARMA_res[[cc]]<-Arima(y=canada_ts,order = c(p,d,q), include.drift = TRUE)
       cc<- cc+1
     }
@@ -359,7 +376,7 @@ The model with the lowest AIC and BIC is ARIMA(2,2,3).
 
 ### U.S. Air Transportation Employment
 
-**p** = 0,1,2, **d** = 0,1,2, **q** = 0,1,2,3,4,5
+**p** = 0,1,2, **d** = 0,1,2, **q** = 0,1,2,3
 
 ```{r}
 #| warning: false
@@ -374,7 +391,7 @@ cc <-1
 ## loop over AR
 for(p in 0:2){
   ## loop over MA
-  for(q in 0:5){
+  for(q in 0:3){
     ## loop over I
     for(d in 0:2){
     
@@ -402,7 +419,7 @@ The model with the lowest AIC and BIC is ARIMA(2,2,3).
 
 ### U.S. Freight Transportation Services Index
 
-**p** = 0,1, **d** = 0,1, **q** = 0,1,2,3,4,5
+**p** = 0,1, **d** = 0,1, **q** = 0,1,2,3
 
 ```{r}
 #| warning: false
@@ -417,7 +434,7 @@ cc <-1
 ## loop over AR
 for(p in 0:1){
   ## loop over MA
-  for(q in 0:5){
+  for(q in 0:3){
     ## loop over I
     for(d in 0:1){
     
@@ -445,7 +462,7 @@ The model with the lowest AIC and BIC is ARIMA(0,1,3).
 
 ### U.S. Domestic Air Carrier Average Freight Revenue
 
-**p** = 0,1, **d** = 0,1, **q** = 0,1,2,3
+**p** = 0,1, **d** = 0,1, **q** = 0,1,2
 
 ```{r}
 #| warning: false
@@ -460,7 +477,7 @@ cc <-1
 ## loop over AR
 for(p in 0:1){
   ## loop over MA
-  for(q in 0:3){
+  for(q in 0:2){
     ## loop over I
     for(d in 0:1){
     
@@ -484,7 +501,7 @@ The model with the lowest AIC and BIC is ARIMA(0,1,1).
 
 ### UPS Stock Price
 
-**p** = 0,1, **d** = 0,1,2, **q** = 0,1,2,3,4,5
+**p** = 0,1, **d** = 0,1,2, **q** = 0,1,2
 
 ```{r}
 #| warning: false
@@ -499,7 +516,7 @@ cc <-1
 ## loop over AR
 for(p in 0:1){
   ## loop over MA
-  for(q in 0:5){
+  for(q in 0:2){
     ## loop over I
     for(d in 0:2){
     
@@ -536,7 +553,7 @@ ARMA_res_canada<-Arima(y=canada_ts,order = c(2,2,3), include.drift = TRUE)
 summary(ARMA_res_canada)
 ```
 
-**Equation**: $x_t= -1.731*x_{t-1} -0.9992*x_{t-2} +w_t +0.7457*w_{t-1} -0.7457*w_{t-2} -w_{t-3}$
+**Equation**: $x_t= 0.269*x_{t-1} +3.4612*x_{t-2} +0.2674*x_{t-3} +0.9992*x_{t-4}+w_t +0.7457*w_{t-1} -0.7457*w_{t-2} -w_{t-3}$
 
 ```{r}
 #| warning: false
@@ -557,7 +574,7 @@ ARMA_res_employment<-Arima(y=employment_ts,order = c(2,2,3), include.drift = TRU
 summary(ARMA_res_employment)
 ```
 
-**Equation**: $x_t= 0.4253*x_{t-1} -0.5218*x_{t-2} +w_t -0.9902*w_{t-1} +0.3708*w_{t-2} -0.3806*w_{t-3}$
+**Equation**: $x_t= 2.8506*x_{t-1} -2.3724*x_{t-2} -0.6183*x_{t-3} -0.5218*x_{t-4} +w_t -0.9902*w_{t-1} +0.3708*w_{t-2} -0.3806*w_{t-3}$
 
 ```{r}
 #| warning: false
@@ -576,7 +593,7 @@ ARMA_res_tsi<-Arima(y=tsi_ts,order = c(0,1,3), include.drift = TRUE)
 summary(ARMA_res_tsi)
 ```
 
-**Equation**: $x_t= w_t -0.07*w_{t-1} -0.0927*w_{t-2} +0.1035*w_{t-3} +0.1127$
+**Equation**: $x_t= x_{t-1} +w_t -0.07*w_{t-1} -0.0927*w_{t-2} +0.1035*w_{t-3} +0.1127$
 
 ```{r}
 #| warning: false
@@ -595,7 +612,7 @@ ARMA_res_air<-Arima(y=air_ts,order = c(0,1,1), include.drift = TRUE)
 summary(ARMA_res_air)
 ```
 
-**Equation**: $x_t= w_t +w_{t-1} -0.151$
+**Equation**: $x_t= x_{t-1} +w_t +w_{t-1} -0.151$
 
 ```{r}
 #| warning: false
@@ -615,7 +632,7 @@ ARMA_res_ups<-Arima(y=ups_ts,order = c(0,1,0), include.drift = TRUE)
 summary(ARMA_res_ups)
 ```
 
-**Equation**: $x_t= 0.0366$
+**Equation**: $x_t= x_{t-1} + w_t +0.0366$
 
 ```{r}
 #| warning: false
@@ -946,5 +963,785 @@ output_df
 ```
 
 Upon examining the accuracy metrics, it's evident that the ARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the ARIMA model outperforms the benchmark models in terms of accuracy.
+
+:::
+
+
+
+# SARIMA
+
+## ACF & PACF Plots
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+canada_ts %>% diff(lag=12) %>% diff() %>% ggtsdisplay()
+
+```
+
+Significant changes are apparent in the seasonal differenced dataset, evident from the time series plot. Although the seasonal cycles persist in the plots for seasonal lags 1 and 2, there is a discernible decrease in correlation observed in both the ACF and PACF plots. This reduction in correlation signifies a potential enhancement in stationarity, suggesting that the seasonal differencing has effectively mitigated the seasonality inherent in the original data.
+
+- **P**: 1,2  **D**: 1  **Q**: 1,2
+
+### U.S. Air Transportation Employment
+
+```{r}
+employment_ts %>% diff(lag=12) %>% diff() %>% ggtsdisplay()
+
+```
+
+Significant changes are apparent in the seasonal differenced dataset, evident from the time series plot. Although the seasonal cycles persist in the plots for seasonal lags 1, there is a discernible decrease in correlation observed in both the ACF and PACF plots. This reduction in correlation signifies a potential enhancement in stationarity, suggesting that the seasonal differencing has effectively mitigated the seasonality inherent in the original data.
+
+- **P**: 1,2  **D**: 1  **Q**: 1
+
+### U.S. Freight Transportation Services Index
+```{r}
+tsi_ts %>% diff(lag=12) %>% diff() %>% ggtsdisplay()
+
+```
+
+Significant changes are apparent in the seasonal differenced dataset, evident from the time series plot. Although the seasonal cycles persist in the plots for seasonal lags 1 and 2, there is a discernible decrease in correlation observed in both the ACF and PACF plots. This reduction in correlation signifies a potential enhancement in stationarity, suggesting that the seasonal differencing has effectively mitigated the seasonality inherent in the original data.
+
+- **P**: 1,2  **D**: 1  **Q**: 1
+
+### UPS Stock Price
+
+```{r}
+ups_ts %>% diff(lag=12) %>% diff() %>% ggtsdisplay(lag=40)
+
+```
+
+Significant changes are apparent in the seasonal differenced dataset, evident from the time series plot. Although the seasonal cycles persist in the plots for seasonal lags 1 and 2, there is a discernible decrease in correlation observed in both the ACF and PACF plots. This reduction in correlation signifies a potential enhancement in stationarity, suggesting that the seasonal differencing has effectively mitigated the seasonality inherent in the original data.
+
+- **P**: 1  **D**: 1  **Q**: 1
+
+:::
+
+
+## Finding Model Parameters For Selected Models
+
+In this section, we will identify potential values for the parameters p, q, P and Q based on the significant lags observed in the PACF and ACF plots of the original data, respectively. Specifically, we will consider the most significant lags from the PACF plot for the value of p,P, and from the ACF plot for the value of q,Q.
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+
+**p** = 0,1,2,3,4 **d** = 0,1,2 **q** = 0,1,2,3,4, **P**: 1,2  **D**: 1,  **Q**: 1,2 
+
+```{r}
+#| warning: false
+
+SARIMA.c=function(p1,p2,q1,q2,P1,P2,Q1,Q2,d1,d2,data){
+  
+  temp=c()
+  D=1
+  s=12
+  
+  i=1
+  temp= data.frame()
+  ls=matrix(rep(NA,9*150),nrow=150)
+  
+  
+  for (p in p1:p2)
+  {
+    for(q in q1:q2)
+    {
+      for(P in P1:P1)
+      {
+        for(Q in Q1:Q1)
+        {
+          for(d in d1:d2)
+            {
+          if(p+d+q+P+D+Q<=10)
+          {
+            
+            model<- Arima(data,order=c(p,d,q),seasonal=c(P,D,Q))
+            ls[i,]= c(p,d,q,P,D,Q,model$aic,model$bic,model$aicc)
+            i=i+1
+            #print(i)
+            
+          }
+          
+        }
+      }
+    }
+    
+  }
+  }
+  
+  temp= as.data.frame(ls)
+  names(temp)= c("p","d","q","P","D","Q","AIC","BIC","AICc")
+  
+  temp
+  
+}
+
+
+output=SARIMA.c(p1=0,p2=4,q1=0,q2=2,P1=0,P2=2,Q1=0,Q2=2,d1=0,d2=2,data=canada_ts)
+#output
+
+output[which.min(output$AIC),] 
+
+output[which.min(output$BIC),] 
+
+output[which.min(output$AICc),] 
+```
+
+The model with the lowest AIC and BIC is ARIMA(4,0,2)X(0,1,0)12.
+
+
+### U.S. Air Transportation Employment
+
+**p** = 0,1,2, **d** = 0,1,2, **q** = 0,1,2,3, **P**: 1,2,  **D**: 1,  **Q**: 1,
+
+```{r}
+#| warning: false
+
+SARIMA.c=function(p1,p2,q1,q2,P1,P2,Q1,Q2,d1,d2,data){
+  
+  temp=c()
+  D=1
+  s=12
+  
+  i=1
+  temp= data.frame()
+  ls=matrix(rep(NA,9*150),nrow=150)
+  
+  
+  for (p in p1:p2)
+  {
+    for(q in q1:q2)
+    {
+      for(P in P1:P1)
+      {
+        for(Q in Q1:Q1)
+        {
+          for(d in d1:d2)
+            {
+          if(p+d+q+P+D+Q<=10)
+          {
+            
+            model<- Arima(data,order=c(p,d,q),seasonal=c(P,D,Q))
+            ls[i,]= c(p,d,q,P,D,Q,model$aic,model$bic,model$aicc)
+            i=i+1
+            #print(i)
+            
+          }
+          
+        }
+      }
+    }
+    
+  }
+  }
+
+  temp= as.data.frame(ls)
+  names(temp)= c("p","d","q","P","D","Q","AIC","BIC","AICc")
+  
+  temp
+  
+}
+
+
+output=SARIMA.c(p1=0,p2=2,q1=0,q2=3,P1=0,P2=2,Q1=0,Q2=1,d1=0,d2=2,data=employment_ts)
+#output
+
+output[which.min(output$AIC),] 
+
+output[which.min(output$BIC),] 
+
+output[which.min(output$AICc),] 
+```
+
+The model with the lowest AIC and BIC is ARIMA(2,1,3)X(0,1,0)12.
+
+
+### U.S. Freight Transportation Services Index
+
+**p** = 0,1 **d** = 0,1, **q** = 0,1,2,3 **P**: 1,2  **D**: 0,1,  **Q**: 1
+
+```{r}
+#| warning: false
+
+SARIMA.c=function(p1,p2,q1,q2,P1,P2,Q1,Q2,d1,d2,data){
+  
+  temp=c()
+  D=0
+  s=12
+  
+  i=1
+  temp= data.frame()
+  ls=matrix(rep(NA,9*150),nrow=150)
+  
+  
+  for (p in p1:p2)
+  {
+    for(q in q1:q2)
+    {
+      for(P in P1:P1)
+      {
+        for(Q in Q1:Q1)
+        {
+          for(d in d1:d2)
+            {
+          if(p+d+q+P+D+Q<=10)
+          {
+            
+            model<- Arima(data,order=c(p,d,q),seasonal=c(P,D,Q))
+            ls[i,]= c(p,d,q,P,D,Q,model$aic,model$bic,model$aicc)
+            i=i+1
+            #print(i)
+            
+          }
+          
+        }
+      }
+    }
+    
+  }
+  }
+
+  temp= as.data.frame(ls)
+  names(temp)= c("p","d","q","P","D","Q","AIC","BIC","AICc")
+  
+  temp
+  
+}
+
+
+output=SARIMA.c(p1=0,p2=1,q1=0,q2=3,P1=0,P2=2,Q1=0,Q2=1,d1=0,d2=1,data=tsi_ts)
+#output
+
+output[which.min(output$AIC),] 
+
+output[which.min(output$BIC),] 
+
+output[which.min(output$AICc),] 
+```
+
+The model with the lowest AIC and BIC is ARIMA(1,1,3)X(0,0,0).
+
+
+### UPS Stock Price
+
+**p** = 0,1, **d** = 0,1, **q** = 0,1, **P**: 1,  **D**: 1,  **Q**: 1
+
+```{r}
+#| warning: false
+
+SARIMA.c=function(p1,p2,q1,q2,P1,P2,Q1,Q2,d1,d2,data){
+  
+  temp=c()
+  D=1
+  s=365
+  
+  i=1
+  temp= data.frame()
+  ls=matrix(rep(NA,9*150),nrow=150)
+  
+  
+  for (p in p1:p2)
+  {
+    for(q in q1:q2)
+    {
+      for(P in P1:P1)
+      {
+        for(Q in Q1:Q1)
+        {
+          for(d in d1:d2)
+            {
+          if(p+d+q+P+D+Q<=10)
+          {
+            
+            model<- Arima(data,order=c(p,d,q),seasonal=c(P,D,Q))
+            ls[i,]= c(p,d,q,P,D,Q,model$aic,model$bic,model$aicc)
+            i=i+1
+            #print(i)
+            
+          }
+          
+        }
+      }
+    }
+    
+  }
+  }
+
+  temp= as.data.frame(ls)
+  names(temp)= c("p","d","q","P","D","Q","AIC","BIC","AICc")
+  
+  temp
+  
+}
+
+
+output=SARIMA.c(p1=0,p2=1,q1=0,q2=1,P1=0,P2=1,Q1=0,Q2=1,d1=0,d2=1,data=ups_ts)
+#output
+
+output[which.min(output$AIC),] 
+
+output[which.min(output$BIC),] 
+
+output[which.min(output$AICc),] 
+```
+
+The model with the lowest AIC and BIC is ARIMA(0,1,0)X(0,1,0)12.
+
+:::
+
+
+## Fit Best SARIMA(P,D,Q) & Diagnostics
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+
+```{r}
+#| warning: false
+
+set.seed(99)
+output <- capture.output(sarima(canada_ts,4,0,2,0,1,0,12))
+
+cat(output[96:108], output[length(output)], sep = "\n") 
+```
+
+**Equation**: $x_t= 0.6848*x_{t-1} -0.6141*x_{t-2} +0.8666*x_{t-3} -0.2061*x_{t-4}-0.6848*x_{t-13} +0.6141*x_{t-14} -0.8666*x_{t-15} +0.2061*x_{t-16} +w_t +0.3393*w_{t-1} +w_{t-2} +0.1101$
+
+Upon inspection of the time plot of the standardized residuals above, no discernible patterns are evident. However, the ACF plot of the standardized residuals indicates some remaining correlation. The normal Q-Q plot of the residuals suggests that the assumption of normality is reasonable, with the exception of potential outliers. The results of the Ljung-Box test reveal values below the 0.05 (5% significance) threshold, indicating the presence of some significant correlation remaining. All the P values are significant. Despite these findings, it appears that the model has been improved.
+
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+
+set.seed(99)
+output <- capture.output(sarima(employment_ts,2,1,3,0,1,0,12))
+cat(output[48:58], output[length(output)], sep = "\n") 
+```
+
+$x_t= 1.1874*x_{t-1} -1.0305*x_{t-2} +0.8431*x_{t-3} +x_{t-12}-1.1874*x_{t-13} +1.1874*x_{t-14} -0.8431*x_{t-15} +w_t +0.3593*w_{t-1} +0.9952*w_{t-2} +0.3723*w_{t-3}$
+
+Upon inspection of the time plot of the standardized residuals above, no discernible patterns are evident. However, the ACF plot of the standardized residuals indicates some remaining correlation. The normal Q-Q plot of the residuals suggests that the assumption of normality is reasonable, with the exception of potential outliers. The results of the Ljung-Box test reveal values below the 0.05 (5% significance) threshold, indicating the presence of some significant correlation remaining. All the P values are significant. Despite these findings, it appears that the model has been improved.
+
+
+### U.S. Freight Transportation Services Index
+
+```{r}
+#| warning: false
+
+set.seed(99)
+output <- capture.output(sarima(tsi_ts,1,1,3,0,0,0,12))
+cat(output[45:55], output[length(output)], sep = "\n") 
+```
+
+**Equation**: $x_t= 1.5867*x_{t-1} -0.5867*x_{t-2} +w_t -0.6583*w_{t-1} -0.0582*w_{t-2} +0.1708*w_{t-3} +0.1053$
+
+Upon examining the time plot of the standardized residuals, no discernible patterns are evident. Additionally, the ACF plot of the standardized residuals reveals no significant departures from the model assumptions, as no significant lags are observed. The normal Q-Q plot of the residuals indicates that the assumption of normality is reasonable, with the exception of possible outliers. Furthermore, the Ljung-Box test yields favorable values exceeding 0.05, suggesting the absence of significant correlation and indicating a well-fitted model. Overall, these observations suggest that the model fits the data well. 
+
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+
+set.seed(99)
+output <- capture.output(sarima(ups_ts,0,1,0,0,1,0,12))
+cat(output, output[length(output)], sep = "\n") 
+```
+
+**Equation**: $x_t= x_{t-1} + x_{t-12} -x_{t-13} +w_t$
+
+Upon examining the time plot of the standardized residuals, no discernible patterns are evident. Additionally, the ACF plot of the standardized residuals reveals just one significant departures from the model assumptions. The normal Q-Q plot of the residuals indicates that the assumption of normality is reasonable, with the exception of possible outliers. The results of the Ljung-Box test reveal values below the 0.05 (5% significance) threshold, indicating the presence of some significant correlation remaining. Despite these findings, it appears that the model has been improved.
+
+:::
+
+
+## Auto ARIMA
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+auto.arima(canada_ts)
+
+```
+
+The discrepancy between the best model provided by Auto ARIMA and the best model identified in the previous step raises concerns about its reliability. Auto ARIMA solely relies on minimizing AIC/BIC values without considering lag instances of high correlation as reflected in the ACF/PACF plots. This approach may result in overfitting and may not capture the underlying patterns in the data accurately.
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+auto.arima(employment_ts)
+
+```
+
+The discrepancy between the best model provided by Auto ARIMA and the best model identified in the previous step raises concerns about its reliability. Auto ARIMA solely relies on minimizing AIC/BIC values without considering lag instances of high correlation as reflected in the ACF/PACF plots. This approach may result in overfitting and may not capture the underlying patterns in the data accurately.
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+auto.arima(tsi_ts)
+
+```
+
+The discrepancy between the best model provided by Auto ARIMA and the best model identified in the previous step raises concerns about its reliability. Auto ARIMA solely relies on minimizing AIC/BIC values without considering lag instances of high correlation as reflected in the ACF/PACF plots. This approach may result in overfitting and may not capture the underlying patterns in the data accurately. 
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+auto.arima(ups_ts)
+
+```
+
+The discrepancy between the best model provided by Auto ARIMA and the best model identified in the previous step raises concerns about its reliability. Auto ARIMA solely relies on minimizing AIC/BIC values without considering lag instances of high correlation as reflected in the ACF/PACF plots. This approach may result in overfitting and may not capture the underlying patterns in the data accurately.
+
+:::
+
+
+## Forecasting
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+
+fit_canada <- Arima(canada_ts, order=c(4,0,2), seasonal=c(0,1,0))
+
+# forecast next three years
+fit_canada %>% forecast(h=12) %>% autoplot(xlab = "Date", ylab = "Billions", colour = "blue")+ggtitle('U.S.-Canada Freight Value Forecast')+theme_bw() 
+
+```
+
+The blue line represents the forecast, while the two shades of purple depict the confidence intervals, with the darker shade representing the 95% interval and the lighter shade representing the 5% interval. As the confidence interval widens, indicating greater uncertainty in the forecast, the shaded region becomes wider.
+
+Examining the forecast plot, there is an initial surge in the monthly U.S.-Canada freight value, followed by a subsequent decline and another increase. Comparing the observed increasing seasonal fluctuations post-2020 to the forecasted fluctuations, it appears that the model accurately predicted the anticipated pattern.
+
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+
+fit_employment <- Arima(employment_ts, order=c(2,1,3), seasonal=c(0,1,0))
+
+# forecast next three years
+fit_employment %>% forecast(h=12) %>% autoplot(xlab = "Date", ylab = "Employment", colour = "blue")+ggtitle('U.S. Air Transportation Employment Forecast') +theme_bw() 
+```
+
+**Equation**: $x_t= 2.8506*x_{t-1} -2.3724*x_{t-2} -0.6183*x_{t-3} -0.5218*x_{t-4} +w_t -0.9902*w_{t-1} +0.3708*w_{t-2} -0.3806*w_{t-3}$
+
+The forecast plot illustrates a subtle decreasing trend in air transportation employment over the next 12 months. The colored bands depict the 95% confidence interval. However, the forecast appears overly smooth and lacks fluctuations. This suggests that the model may not adequately capture the inherent variability or fluctuations in the data.
+
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+fit_tsi <- Arima(tsi_ts, order=c(1,1,3), seasonal=c(0,0,0))
+
+# forecast next three years
+fit_tsi %>% forecast(h=12) %>% autoplot( xlab = "Date", ylab = "Transportation Services Index", colour = "blue")+ggtitle('U.S. Freight Transportation Services Index Forecast') +theme_bw()
+
+```
+
+The forecast plot indicates an ascending trend in the U.S. freight TSI over the ensuing 12 months. The colored bands delineate the 95% confidence interval. Nonetheless, the forecast appears excessively smooth, lacking the expected fluctuations. This suggests that the model might not adequately capture the inherent variability or fluctuations in the data.
+
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+fit_ups <- Arima(ups_ts, order=c(0,1,0), seasonal=c(0,1,0))
+
+# forecast next three years
+fit_ups %>% forecast(h=50) %>% autoplot( xlab = "Date", ylab = "Stock Price", colour = "blue")+ggtitle('UPS Stock Price Forecast') +theme_bw()
+
+```
+
+The forecast plot depicts a rising trend in the UPS stock price over the next 50 days. The colored bands represent the 95% confidence interval. Notably, it closely follows the fluctuation pattern observed in the historical data. This alignment suggests that the model may effectively capture the inherent variability and fluctuations present in the stock price data.
+
+:::
+
+
+## SARIMA vs. Benchmark Methods
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+
+autoplot(canada_ts, xlab = "Date", ylab = "Billions") +
+  autolayer(meanf(canada_ts, h=12),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(canada_ts, h=12),
+            series="Naïve", PI=FALSE)+
+  autolayer(snaive(canada_ts, h=12),
+            series="SNaïve", PI=FALSE)+
+  autolayer(rwf(canada_ts, h=12, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(forecast(fit_canada,12), 
+            series="SARIMA",PI=FALSE) + ggtitle("U.S.-Canada Freight Value SARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the SARIMA model best captures the trend, closely aligning with the observed data. The SNaive methods exhibit a comparable trajectory for the forecast. In contrast, the Mean and Naive benchmark models notably underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(forecast(fit_canada,12))
+output2 <- accuracy(meanf(canada_ts, h=12))
+output3 <- accuracy(naive(canada_ts, h=12))
+output4 <- accuracy(snaive(canada_ts, h=12))
+output5 <- accuracy(rwf(canada_ts, drift=TRUE, h=12))
+
+output_list <- list(output1, output2, output3, output4, output5)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("SARIMA", "Meanf", "Naive", "SNaive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the SARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the SARIMA model outperforms the benchmark models in terms of accuracy.
+
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+
+autoplot(employment_ts, xlab = "Date", ylab = "Employment") +
+  autolayer(meanf(employment_ts, h=12),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(employment_ts, h=12),
+            series="Naïve", PI=FALSE)+
+  autolayer(snaive(employment_ts, h=12),
+            series="SNaïve", PI=FALSE)+
+  autolayer(rwf(employment_ts, h=12, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(forecast(fit_employment,12), 
+            series="SARIMA",PI=FALSE) + ggtitle("U.S. Air Transportation Employment SARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the SARIMA model best captures the trend, closely aligning with the observed data. The SNaive methods exhibit a comparable trajectory for the forecast. In contrast, the Mean benchmark model notably underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(forecast(fit_employment,12))
+output2 <- accuracy(meanf(employment_ts, h=12))
+output3 <- accuracy(naive(employment_ts, h=12))
+output4 <- accuracy(snaive(employment_ts, h=12))
+output5 <- accuracy(rwf(employment_ts, drift=TRUE, h=12))
+
+output_list <- list(output1, output2, output3, output4, output5)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("SARIMA", "Meanf", "Naive", "SNaive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the Naive and drift model achieved the lowest RMSE, MAE, and MAPE values, followed by the SARIMA model. This suggests that the SARIMA model did not outperforms the benchmark models in terms of accuracy.
+
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+
+autoplot(tsi_ts, xlab = "Date", ylab = "Transportation Services Index") +
+  autolayer(meanf(tsi_ts, h=12),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(tsi_ts, h=12),
+            series="Naïve", PI=FALSE)+
+  autolayer(snaive(tsi_ts, h=12),
+            series="SNaïve", PI=FALSE)+
+  autolayer(rwf(tsi_ts, h=12, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(forecast(fit_tsi,12), 
+            series="SARIMA",PI=FALSE) + ggtitle("U.S. Freight Transportation Services Index SARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the SARIMA model best captures the trend, closely aligning with the observed data. The SNaive methods exhibit a comparable trajectory for the forecast. In contrast, the Mean and Naive benchmark models notably underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(forecast(fit_tsi,12))
+output2 <- accuracy(meanf(tsi_ts, h=12))
+output3 <- accuracy(naive(tsi_ts, h=12))
+output4 <- accuracy(snaive(tsi_ts, h=12))
+output5 <- accuracy(rwf(tsi_ts, drift=TRUE, h=12))
+
+output_list <- list(output1, output2, output3, output4, output5)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("SARIMA", "Meanf", "Naive", "SNaive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the SARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the SARIMA model outperforms the benchmark models in terms of accuracy.
+
+
+### UPS Stock Price
+
+```{r}
+#| warning: false
+
+autoplot(ups_ts, xlab = "Date", ylab = "Stock Price") +
+  autolayer(meanf(ups_ts, h=50),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(ups_ts, h=50),
+            series="Naïve", PI=FALSE)+
+  autolayer(snaive(ups_ts, h=50),
+            series="SNaïve", PI=FALSE)+
+  autolayer(rwf(ups_ts, h=50, drift=TRUE),
+            series="Drift", PI=FALSE)+
+   autolayer(forecast(fit_ups,50), 
+            series="SARIMA",PI=FALSE) + ggtitle("UPS Stock Price SARIMA vs. Benchmarks")+
+  guides(colour=guide_legend(title="Forecast")) +theme_bw()
+```
+
+We observe that the SARIMA model best captures the trend, closely aligning with the observed data. The SNaive methods exhibit a comparable trajectory for the forecast. In contrast, the Mean and Naive benchmark models notably underperform, failing to accurately capture the underlying trend.
+
+```{r}
+# Compute accuracy
+output1 <- accuracy(pred_ups)
+output2 <- accuracy(meanf(ups_ts, h=50))
+output3 <- accuracy(naive(ups_ts, h=50))
+output4 <- accuracy(snaive(ups_ts, h=50))
+output5 <- accuracy(rwf(ups_ts, drift=TRUE, h=50))
+
+output_list <- list(output1, output2, output3, output4, output5)
+
+# Put into df
+output_df <- do.call(rbind, output_list)
+
+# Set row names for the dataframe
+row.names(output_df) <- c("SARIMA", "Meanf", "Naive", "SNaive", "Drift")
+
+output_df
+```
+
+Upon examining the accuracy metrics, it's evident that the SARIMA model achieved the lowest RMSE, MAE, and MAPE values, followed by the Drift model. This suggests that the ARIMA model outperforms the benchmark models in terms of accuracy.
+
+:::
+
+
+## Cross Validation
+
+::: panel-tabset
+
+### U.S.-Canada Freight Value
+```{r}
+#| warning: false
+
+#a seasonal cross validation using 1 steps ahead forecasts
+farima1 <- function(x, h){forecast(Arima(x, order=c(4,0,2),seasonal = c(0,1,0)),h=h)}
+
+# Compute cross-validated errors for up to 1 steps ahead
+e1 <- tsCV(canada_ts, forecastfunction = farima1, h = 1)
+mae1 <-abs(mean(e1,na.rm=TRUE))
+rmse1=sqrt(mean(e1^2, na.rm=TRUE)) #one-step time series cross-validation
+cat("1-Step Forecast MAE:", mae1, "\n")
+cat("1-Step Forecast RMSE:", rmse1, "\n")
+
+# Compute cross-validated errors for up to 12 steps ahead
+e <- tsCV(canada_ts, forecastfunction = farima1, h = 12)
+
+# Compute the AME and RMSE values
+mae <-abs(mean(e,na.rm=TRUE))
+rmse <-sqrt(mean(e^2, na.rm=TRUE)) #s-step time series cross-validation
+cat("S-Step Forecast MAE:", mae, "\n")
+cat("S-Step Forecast RMSE:", rmse, "\n")
+```
+
+### U.S. Air Transportation Employment
+
+```{r}
+#| warning: false
+#a seasonal cross validation using 1 steps ahead forecasts
+farima1 <- function(x, h){forecast(Arima(x, order=c(2,1,3),seasonal = c(0,1,0)),h=h)}
+
+# Compute cross-validated errors for up to 1 steps ahead
+e1 <- tsCV(employment_ts, forecastfunction = farima1, h = 1)
+mae1 <-abs(mean(e1,na.rm=TRUE))
+rmse1=sqrt(mean(e1^2, na.rm=TRUE)) #one-step time series cross-validation
+cat("1-Step Forecast MAE:", mae1, "\n")
+cat("1-Step Forecast RMSE:", rmse1, "\n")
+
+# Compute cross-validated errors for up to 12 steps ahead
+e <- tsCV(employment_ts, forecastfunction = farima1, h = 12)
+
+# Compute the AME and RMSE values
+mae <-abs(mean(e,na.rm=TRUE))
+rmse <-sqrt(mean(e^2, na.rm=TRUE)) #s-step time series cross-validation
+cat("S-Step Forecast MAE:", mae, "\n")
+cat("S-Step Forecast RMSE:", rmse, "\n")
+```
+
+### U.S. Freight Transportation Services Index
+```{r}
+#| warning: false
+#a seasonal cross validation using 1 steps ahead forecasts
+farima1 <- function(x, h){forecast(Arima(x, order=c(1,1,3),seasonal = c(0,0,0)),h=h)}
+
+# Compute cross-validated errors for up to 1 steps ahead
+e1 <- tsCV(tsi_ts, forecastfunction = farima1, h = 1)
+mae1 <-abs(mean(e1,na.rm=TRUE))
+rmse1=sqrt(mean(e1^2, na.rm=TRUE)) #one-step time series cross-validation
+cat("1-Step Forecast MAE:", mae1, "\n")
+cat("1-Step Forecast RMSE:", rmse1, "\n")
+
+# Compute cross-validated errors for up to 12 steps ahead
+e <- tsCV(tsi_ts, forecastfunction = farima1, h = 12)
+
+# Compute the AME and RMSE values
+mae <-abs(mean(e,na.rm=TRUE))
+rmse <-sqrt(mean(e^2, na.rm=TRUE)) #s-step time series cross-validation
+cat("S-Step Forecast MAE:", mae, "\n")
+cat("S-Step Forecast RMSE:", rmse, "\n")
+```
+
+### UPS Stock Price
+
+#```{r}
+#| warning: false
+#a seasonal cross validation using 1 steps ahead forecasts
+farima1 <- function(x, h){forecast(Arima(x, order=c(0,1,0),seasonal = c(0,1,0)),h=h)}
+
+# Compute cross-validated errors for up to 1 steps ahead
+e1 <- tsCV(ups_ts, forecastfunction = farima1, h = 1)
+mae1 <-abs(mean(e1,na.rm=TRUE))
+rmse1=sqrt(mean(e1^2, na.rm=TRUE)) #one-step time series cross-validation
+cat("1-Step Forecast MAE:", mae1, "\n")
+cat("1-Step Forecast RMSE:", rmse1, "\n")
+
+# Compute cross-validated errors for up to 365 steps ahead
+e <- tsCV(ups_ts, forecastfunction = farima1, h = 365)
+
+# Compute the AME and RMSE values
+mae <-abs(mean(e,na.rm=TRUE))
+rmse <-sqrt(mean(e^2, na.rm=TRUE)) #s-step time series cross-validation
+cat("S-Step Forecast MAE:", mae, "\n")
+cat("S-Step Forecast RMSE:", rmse, "\n")
+
+```
 
 :::
