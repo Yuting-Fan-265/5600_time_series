@@ -7,54 +7,691 @@ format:
 editor_options: 
   chunk_output_type: console
 ---
+```{r}
+#| include: false
+library(tidyverse)
+library(ggplot2)
+library(forecast)
+library(astsa) 
+library(xts)
+library(tseries)
+library(fpp2)
+library(fma)
+library(lubridate)
+library(TSstudio)
+library(quantmod)
+library(tidyquant)
+library(plotly)
+library(gridExtra)               
+library(zoo) 
+library(vars)  
+library(dplyr)
+```
+
+## Literature Review
+
+In analyzing the temporal dynamics of the U.S. freight transportation industry, key variables emerge as critical factors shaping its trajectory. Economic indicators, encompassing metrics like GDP growth, consumer spending, and industrial production, serve as pivotal markers of overall economic activity. These indicators not only influence freight transportation demand but also offer insights into broader economic trends. Additionally, fuel prices wield significant influence, affecting operating costs and modal choice decisions within the transportation sector. Research underscores the impact of fuel price fluctuations on transportation costs, suggesting their inclusion as exogenous variables in ARIMAX models to enhance freight volume forecasts.
+
+When considering modeling approaches, both ARIMAX and VAR models offer distinct advantages for capturing the complexities of freight transportation dynamics. ARIMAX models are well-suited for incorporating economic indicators, fuel prices, and infrastructure investment as variables. Leveraging their autoregressive and exogenous components, ARIMAX models can effectively account for temporal patterns and external influences, thereby improving the accuracy of freight volume forecasts over time. On the other hand, VAR models excel in analyzing the dynamic relationships among multiple variables. They provide a versatile framework for examining the simultaneous effects of economic indicators, fuel prices, regulatory changes, and technological advancements on freight transportation dynamics. With their capacity to capture intricate interactions and feedback mechanisms, VAR models offer valuable insights into the evolving landscape of the freight transportation industry.
+
+For the ARIMAX model, 
+
+For the VAR model, the analysis delves into three distinct sets of variables within the air cargo industry to uncover their interrelationships and implications. Firstly, it examines the connections between Air Cargo (Domestic), Air Cargo (International), Fuel Price, and the Transportation Services Index (TSI). This investigation aims to discern whether fluctuations in air cargo volumes, both domestically and internationally, correlate with changes in fuel prices and TSI, thereby providing insights into the broader drivers of the air cargo industry.
+
+Secondly, the analysis focuses on the relationship between Air Cargo (Domestic), Air Cargo (International), and Employment. By exploring the mutual influence between air cargo volumes and employment levels. Understanding these dynamics is crucial for grasping the industry's labor market dynamics and its broader economic implications.
+
+Lastly, the analysis considers the dynamics between GDP, Revenue, and Employment within the air industry. By examining the interplay between these key economic indicators, it aims to uncover the industry's economic performance and its effects on employment trends. This exploration provides valuable insights into the industry's contribution to the broader economy and its role in shaping employment patterns.
+
+## Define Models
+
+### ARIMAX: UPS Stock Price ~ Covid New Cases (Weekly)
+```{r}
+#  ARIMAX: ups stock price and covid new cases (weekly)
+# get the weekly stock price of ups
+ups <- getSymbols("UPS",auto.assign = FALSE, from = "2020-01-01", to = "2023-05-15",src="yahoo") 
+ups=data.frame(ups)
+ups <- data.frame(ups,rownames(ups))
+colnames(ups)[7] = "date"
+ups$date<-as.Date(ups$date,"%Y-%m-%d")
+ups <- ups[seq(1, nrow(ups), by = 5), ]
+
+# get the weekly covid new cases
+covid <- read.csv("data/clean_data/covid.csv",header =TRUE, sep = ',')
+covid <- subset(covid, select = c(date, new_cases_per_million))
+covid <- na.omit(covid)
+covid <- head(covid, -6)
+
+# combine the data
+ups_covid <- data.frame("UPS"=ups$UPS.Adjusted, "COVID"=covid$new_cases_per_million)
+#(head(ups_covid))
+
+# Convert to a Time Series Component 
+ups_covid_ts <- ts(ups_covid, start = decimal_date(as.Date("2000-01-02", format = "%Y-%m-%d")), frequency = 52)
+
+head(ups_covid_ts)
+
+VARselect(ups_covid_ts, lag.max=10, type="both")
+summary(vars::VAR(ups_covid_ts, p=3, type='both'))
+```
+
+### ARIMAX: Canada Freight Value ~ Fuel Price + TSI (Monthly)
+```{r}
+#  ARIMAX: Canada Freight Value and Fuel Price, TSI (monthly)
+# get the canada freight monthly value
+canada <- read.csv("data/clean_data/24monthly_canada_freight.csv")
+canada <- canada[,c("Date","Value")]
+
+# get the fuel monthly price
+fuel <- read.csv("data/clean_data/34monthly_fuel_prices.csv")
+# remove the dollar sign
+fuel$Diesel <- as.numeric(gsub("\\$", "", fuel$Diesel))
+fuel$Jet.Fuel <- as.numeric(gsub("\\$", "", fuel$Jet.Fuel))
+# select the same start data
+fuel1 <- fuel[73:(nrow(fuel)-6),]
+
+# get the TSI monthly data
+tsi <- read.csv("data/clean_data/35monthly_TSI.csv")
+tsi1 <- tsi[73:nrow(tsi),]
+
+# combine the data
+canada_value <- data.frame("Canada_value"=canada$Value, "Fuel"=fuel1$Diesel, "TSI"=tsi1$Transportation.Services.Index...Freight)
+#(head(canada_value))
+
+canada_value_ts <- ts(canada_value, start = decimal_date(as.Date("2006-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+head(canada_value_ts)
+
+VARselect(canada_value_ts, lag.max=10, type="both")
+summary(vars::VAR(canada_value_ts, p=2, type='both'))
+```
+
+###  VAR: Air Cargo(Domestic) ~ Air Cargo(International) + Fuel Price + TSI (Monthly) 
+```{r}
+#  VAR: Air Cargo and Fuel Price, TSI (monthly)
+# get the cargo data
+cargo <- read.csv("data/clean_data/Monthly_air_revenue.csv")
+cargo$International <- cargo$U.S..Air.Carrier.Cargo..millions.of.revenue.ton.miles....International/1000000000
+cargo$Domestic <- cargo$U.S..Air.Carrier.Cargo..millions.of.revenue.ton.miles....Domestic/1000000000
+cargo <- cargo[4:(nrow(cargo)-8),]
+
+# get the fuel monthly price
+fuel <- read.csv("data/clean_data/34monthly_fuel_prices.csv")
+# remove the dollar sign
+fuel$Diesel <- as.numeric(gsub("\\$", "", fuel$Diesel))
+fuel$Jet.Fuel <- as.numeric(gsub("\\$", "", fuel$Jet.Fuel))
+# select the same start data
+fuel2 <- fuel[37:(nrow(fuel)-6),]
+
+# get the TSI monthly data
+tsi <- read.csv("data/clean_data/35monthly_TSI.csv")
+tsi2 <- tsi[37:nrow(tsi),]
+
+# combine the data
+revenue_ <- data.frame("Domestic"=cargo$Domestic, "International"=cargo$International, "Fuel"=fuel2$Jet.Fuel, "TSI"=tsi2$Transportation.Services.Index...Freight)
+#(head(revenue_))
+
+revenue_ts <- ts(revenue_, start = decimal_date(as.Date("2003-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+head(revenue_ts)
+
+```
+
+### VAR: Employment ~ Air Cargo(Domestic) + Air Cargo(International) (Monthly) 
+```{r}
+#  VAR: Employment and Air Cargo (monthly)
+# get the employment data
+employment <- read.csv("data/clean_data/32monthly_employment.csv")
+employment <- employment[,c("Date","Transportation.Employment...Air.Transportation")]
+
+# get the cargo data
+cargo <- read.csv("data/clean_data/Monthly_air_revenue.csv")
+cargo$International <- cargo$U.S..Air.Carrier.Cargo..millions.of.revenue.ton.miles....International/1000000000
+cargo$Domestic <- cargo$U.S..Air.Carrier.Cargo..millions.of.revenue.ton.miles....Domestic/1000000000
+cargo1 <- cargo[28:(nrow(cargo)-8),]
+
+# combine the data
+emp_ <- data.frame("Employment"=employment$Transportation.Employment...Air.Transportation, "International"=cargo1$International, "Domestic"=cargo1$Domestic)
+#(head(emp_))
+
+emp_ts <- ts(emp_, start = decimal_date(as.Date("2005-01-01", format = "%Y-%m-%d")), frequency = 12)
+
+head(emp_ts)
+
+```
+
+###  VAR: GDP ~ Revenue + Employment (Air, Yearly)
+```{r}
+#  VAR: Air GDP, Revenue and Employment (yearly)
+# get the yearly GDP of air
+gdp <- read.csv("data/clean_data/31GDP.csv")
+# Group by Year and Mode, calculate the sum of GDP within each group
+gdp <- gdp %>%
+  filter(Mode =='Air')%>%
+  group_by(Year) %>%
+  summarize(Value = sum(Current....billions., na.rm = TRUE))
+
+# get the air revenue
+air <- read.csv("data/clean_data/33revenue.csv")
+air <- air[air$Mode=="Air carrier, domestic",c("Year","Value")]
+air <- air[order(air$Year), ]
+air <- air[13:nrow(air),]
+
+# get the air employment
+employment <- read.csv("data/clean_data/32monthly_employment.csv")
+employment <- employment[,c("Date","Transportation.Employment...Air.Transportation")]
+employment$Date <- as.POSIXct(employment$Date, format = "%m/%d/%Y %I:%M:%S %p")
+employment$Year <- format(employment$Date, "%Y")
+employment <- employment %>%
+              group_by(Year) %>%
+              summarize(Value = sum(Transportation.Employment...Air.Transportation, na.rm = TRUE)/1000000)
+employment <- employment[8:17,]
+
+# combine the data
+air_ <- data.frame("GDP"=gdp$Value, "Revenue"=air$Value, "Employment"=employment$Value)
+#(head(air_))
+
+air_ts <- ts(air_, start = decimal_date(as.Date("2012-01-01", format = "%Y-%m-%d")), frequency = 1)
+
+(air_ts)
+
+```
+
+
+
+## ARIMAX/SARIMAX
 
 ::: panel-tabset
 
-### U.S.-Canada Freight Value
+### UPS Stock Price ~ Covid New Cases
 ```{r}
 #| warning: false
-#canada_ts
+#ups_covid_ts
 
 ```
 
  
 
-### U.S. Air Transportation Employment
+### Canada Freight Value ~ Fuel Price + TSI
 
 ```{r}
 #| warning: false
-#employment_ts
+#canada_value_ts
 
 ```
 
+:::
 
 
-### U.S. Freight Transportation Services Index
+
+## VAR
+
+### Select Variables
+::: panel-tabset
+
+### Air Cargo(Domestic) ~ Air Cargo(International) + Fuel Price + TSI
 ```{r}
 #| warning: false
-#tsi_ts
-
+#revenue_ts
+autoplot(revenue_ts, facets=TRUE) +
+  xlab("Year") + ylab("") +
+  ggtitle("Air Cargo(Domestic), Air Cargo(International), Fuel Price and TSI in USA")
 ```
 
- 
 
-### U.S. Domestic Air Carrier Average Freight Revenue
+I have selected Air Cargo (Domestic), Air Cargo (International), Fuel Price, and TSI as variables for analysis. My objective is to explore the interdependencies among these variables. Specifically, I aim to understand whether there is a mutual influence between domestic and international air cargo, whether fuel prices affect air cargo volumes, and whether the TSI correlates with the other variables. By examining the relationships among these variables, I hope to gain insights into the dynamics of the air cargo industry and its drivers.
+
+### Employment ~ Air Cargo(Domestic) + Air Cargo(International)
+
+```{r}
+#| warning: false
+#emp_ts
+autoplot(emp_ts, facets=TRUE) +
+  xlab("Year") + ylab("") +
+  ggtitle("Employment, Air Cargo(Domestic) and Air Cargo(International) in USA")
+```
+
+I have selected Air Cargo (Domestic), Air Cargo (International), and Employment as variables for analysis. My goal is to examine the potential mutual influence among these variables. Specifically, I aim to understand whether changes in domestic and international air cargo volumes impact employment levels, and vice versa. This analysis will help me understand the interconnectedness of these factors and their implications for economic activity and employment trends.
+
+### VAR: GDP ~ Revenue + Employment (Air)
+```{r}
+#| warning: false
+#air_ts
+autoplot(air_ts, facets=TRUE) +
+  xlab("Year") + ylab("") +
+  ggtitle("Air GDP, Revenue and Employment in USA")
+```
+
+My objective is to explore the potential interrelationships among these variables. Specifically, I aim to understand how changes in GDP and Revenue within the air industry may influence employment levels, and vice versa. By investigating the relationships among these key indicators, I seek to gain insights into the dynamics of the air industry's economic performance and its impact on employment trends.
+
+:::
+
+
+### Select Best VAR(p)
+::: panel-tabset
+
+### Air Cargo(Domestic) ~ Air Cargo(International) + Fuel Price + TSI
+
+Based on the selection criterion, models with lag orders p=3 and p=10 were considered. Upon fitting VAR(1), VAR(3), and VAR(10) models and comparing the results, it was observed that the VAR(10) model will be instability. Meanwhile, the VAR(3) model showed stronger correlations among the variables, indicating its potential as the best-fitting model.
+
+```{r}
+#| warning: false
+#revenue_ts
+
+VARselect(revenue_ts, lag.max=10, type="both")
+summary(vars::VAR(revenue_ts, p=1, type='both'))
+summary(vars::VAR(revenue_ts, p=3, type='both'))
+summary(vars::VAR(revenue_ts, p=10, type='both'))
+```
+
+### Employment ~ Air Cargo(Domestic) + Air Cargo(International)
+
+Based on the selection criterion, models with lag orders p=3, p=4 and p=10 were considered. Upon fitting VAR(1), VAR(3), and VAR(4) models and comparing the results, it was observed that the VAR(10) model will be instability. Meanwhile, the VAR(3) model showed stronger correlations among the variables, indicating its potential as the best-fitting model.
+
+```{r}
+#| warning: false
+#emp_ts
+
+
+VARselect(emp_ts, lag.max=10, type="both")
+summary(vars::VAR(emp_ts, p=1, type='both'))
+summary(vars::VAR(emp_ts, p=3, type='both'))
+summary(vars::VAR(emp_ts, p=4, type='both'))
+```
+
+### VAR: GDP ~ Revenue + Employment (Air)
+
+Based on the selection criterion, models with lag orders p=1, and p=2 were considered. Upon fitting VAR(1), and VAR(2) models and comparing the results, it was observed that the model showed no stronger correlations among the variables, indicating VAR(1) as the best-fitting model.
+
 ```{r}
 #| warning: false
 #air_ts
 
+VARselect(air_ts, lag.max=5, type="both")
+summary(vars::VAR(air_ts, p=1, type='both'))
+#summary(vars::VAR(air_ts, p=2, type='both'))
 ```
 
- 
+:::
 
-### UPS Stock Price
+
+### Cross Validation
+::: panel-tabset
+
+### Air Cargo(Domestic) ~ Air Cargo(International) + Fuel Price + TSI
+```{r}
+#| warning: false
+#revenue_ts
+
+n=240
+k=48 #12*4
+
+#n-k=192; 192/12=16;
+
+rmse1 <- matrix(NA, 192,4) #here is n-k
+rmse2 <- matrix(NA, 192,4)
+rmse3 <- matrix(NA,16,12) #here n-k / 12 
+year<-c()
+
+ts_obj1 <- head(revenue_ts, -1)
+
+st <- tsp(ts_obj1 )[1]+(k-1)/12 
+
+
+for(i in 1:16) #here  is (n-k ) / 12
+{
+  
+  xtrain <- window(ts_obj1, end=st + i-1)
+  xtest <- window(ts_obj1, start=st + (i-1) + 1/12, end=st + i)
+  
+  ######## first Model ############
+  fit <- vars::VAR(ts_obj1, p=4, type='both')
+  fcast <- predict(fit, n.ahead = 12)
+  fdo<-fcast$fcst$Domestic
+  fin<-fcast$fcst$International
+  ffuel<-fcast$fcst$Fuel
+  ftsi <-fcast$fcst$TSI
+  
+  ff<-data.frame(fdo[,1],fin[,1],ffuel[,1],ftsi[,1]) #collecting the forecasts for 4 variables
+  
+  year<-st + (i-1) + 1/12 #starting year
+  
+  ####### convert to a time series object ########
+  
+  ff<-ts(ff,start=c(year,1),frequency = 12)
+  
+  a = 12*i-11 #going from 1,13, 15, (1,1+12,1+12+12, 1+12+12+12, ...)
+  b= 12*i #12, 24, 36
+  
+  ##### collecting errors ######
+  rmse1[c(a:b),]  <-sqrt((ff-xtest)^2)
+  
+  
+  ######## Second Model ############
+  fit2 <- vars::VAR(ts_obj1, p=3, type='both')
+  fcast2 <- predict(fit2, n.ahead = 12)
+  
+  fdo<-fcast2$fcst$Domestic
+  fin<-fcast2$fcst$International
+  ffuel<-fcast2$fcst$Fuel
+  ftsi <-fcast2$fcst$TSI
+  
+  ff2<-data.frame(fdo[,1],fin[,1],ffuel[,1],ftsi[,1])
+  
+  year<-st + (i-1) + 1/12
+  
+  ff2<-ts(ff2,start=c(year,1),frequency = 12)
+  
+  a = 12*i-11
+  b= 12*i
+  rmse2[c(a:b),]  <-sqrt((ff2-xtest)^2)
+}
+
+yr = rep(c(2008:2023),each =12) #year
+qr = rep(paste0("M",1:12),16) #monthly
+
+rmse1 = data.frame(yr,qr,rmse1)
+names(rmse1) =c("Year", "Month", "Domestic", "International", "Fuel", "TSI")
+rmse2 = data.frame(yr,qr,rmse2)
+names(rmse2) =c("Year", "Month", "Domestic", "International", "Fuel", "TSI")
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = Domestic),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = Domestic),color = "red") +
+  labs(
+    title = "CV RMSE for Domestic",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = International),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = International),color = "red") +
+  labs(
+    title = "CV RMSE for International",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = Fuel),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = Fuel),color = "red") +
+  labs(
+    title = "CV RMSE for Fuel",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = TSI),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = TSI),color = "red") +
+  labs(
+    title = "CV RMSE for TSI",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+```
+
+Based on cross-validation results, it was found that the VAR(3) model exhibits a lower RMSE compared to the VAR(4) model. This lower RMSE indicates that the VAR(3) model provides better predictive performance and is therefore considered the superior model in this context.
+
+### Employment ~ Air Cargo(Domestic) + Air Cargo(International)
 
 ```{r}
 #| warning: false
-#ups_ts
+#emp_ts
+n=217
+k=48 #12*4
+
+#n-k=168; 168/12=14;
+
+rmse1 <- matrix(NA, 168,3) #here is n-k
+rmse2 <- matrix(NA, 168,3)
+rmse3 <- matrix(NA,14,12) #here n-k / 12 
+year<-c()
+
+ts_obj2 <- head(emp_ts, -1)
+
+st <- tsp(ts_obj2 )[1]+(k-1)/12 
+
+
+for(i in 1:14) #here  is (n-k ) / 12
+{
+  
+  xtrain <- window(ts_obj2, end=st + i-1)
+  xtest <- window(ts_obj2, start=st + (i-1) + 1/12, end=st + i)
+  
+  ######## first Model ############
+  fit <- vars::VAR(ts_obj2, p=3, type='both')
+  fcast <- predict(fit, n.ahead = 12)
+  fin<-fcast$fcst$International
+  fdo<-fcast$fcst$Domestic
+  femp<-fcast$fcst$Employment
+  
+  ff<-data.frame(fin[,1],fdo[,1],femp[,1]) #collecting the forecasts for 3 variables
+  
+  year<-st + (i-1) + 1/12 #starting year
+  
+  ####### convert to a time series object ########
+  
+  ff<-ts(ff,start=c(year,1),frequency = 12)
+  
+  a = 12*i-11 #going from 1,13, 15, (1,1+12,1+12+12, 1+12+12+12, ...)
+  b= 12*i #12, 24, 36
+  
+  ##### collecting errors ######
+  rmse1[c(a:b),]  <-sqrt((ff-xtest)^2)
+  
+  
+  ######## Second Model ############
+  fit2 <- vars::VAR(ts_obj2, p=4, type='both')
+  fcast2 <- predict(fit2, n.ahead = 12)
+  
+  fin<-fcast2$fcst$International
+  fdo<-fcast2$fcst$Domestic
+  femp<-fcast2$fcst$Employment
+  ff2<-data.frame(fin[,1],fdo[,1],femp[,1])
+  
+  year<-st + (i-1) + 1/12
+  
+  ff2<-ts(ff2,start=c(year,1),frequency = 12)
+  
+  a = 12*i-11
+  b= 12*i
+  rmse2[c(a:b),]  <-sqrt((ff2-xtest)^2)
+}
+
+yr = rep(c(2010:2023),each =12) #year
+qr = rep(paste0("M",1:12),14) #monthly
+
+rmse1 = data.frame(yr,qr,rmse1)
+names(rmse1) =c("Year", "Month","International","Domestic","Employment")
+rmse2 = data.frame(yr,qr,rmse2)
+names(rmse2) =c("Year", "Month","International","Domestic","Employment")
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = International),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = International),color = "red") +
+  labs(
+    title = "CV RMSE for International",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = Domestic),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = Domestic),color = "red") +
+  labs(
+    title = "CV RMSE for Domestic",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = Employment),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = Employment),color = "red") +
+  labs(
+    title = "CV RMSE for Employment",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+```
+
+Based on cross-validation results, it was found that the VAR(3) model exhibits a lower RMSE compared to the VAR(4) model. This lower RMSE indicates that the VAR(4) model provides better predictive performance and is therefore considered the superior model in this context.
+
+### VAR: GDP ~ Revenue + Employment (Air)
+```{r}
+#| warning: false
+#air_ts
+n=10 #372
+k=1 #12*4
+
+#n-k=9; 
+
+rmse1 <- matrix(NA, 9,3) #here is n-k
+rmse2 <- matrix(NA, 9,3)
+rmse3 <- matrix(NA,9) #here n-k
+year<-c()
+
+ts_obj <- air_ts
+
+st <- tsp(ts_obj )[1] 
+
+
+for(i in 1:9) #here  is (n-k ) 
+{
+  
+  xtrain <- window(ts_obj, end=st + i-1)
+  xtest <- window(ts_obj, start=st + (i-1) + 1, end=st + i)
+  
+  ######## first Model ############
+  fit <- vars::VAR(ts_obj, p=1, type='both')
+  fcast <- predict(fit, n.ahead = 3)
+  fgdp<-fcast$fcst$GDP
+  fre<-fcast$fcst$Revenue
+  femp<-fcast$fcst$Employment
+  
+  ff<-data.frame(fgdp[,1],fre[,1],femp[,1]) #collecting the forecasts for 3 variables
+  
+  year<-st + (i-1) #starting year
+  
+  ####### convert to a time series object ########
+  
+  ff<-ts(ff,start=c(year,1),frequency = 1)
+  
+  ##### collecting errors ######
+  rmse1[i-1,]  <-sqrt((ff-xtest)^2)
+  
+  
+  ######## Second Model ############
+  fit2 <- vars::VAR(ts_obj, p=2, type='both')
+  fcast2 <- predict(fit2, n.ahead = 3)
+  
+  fgdp<-fcast2$fcst$GDP
+  fre<-fcast2$fcst$Revenue
+  femp<-fcast2$fcst$Employment
+  ff2<-data.frame(fgdp[,1],fre[,1],femp[,1])
+  
+  year<-st + (i-1)
+  
+  ff2<-ts(ff2,start=c(year,1),frequency = 1)
+  
+  rmse2[i-1,]  <-sqrt((ff2-xtest)^2)
+}
+
+yr = rep(c(2013:2021),each =1) #year
+
+rmse1 = data.frame(yr,rmse1)
+names(rmse1) =c("Year", "GDP","Revenue","Employment")
+rmse2 = data.frame(yr,rmse2)
+names(rmse2) =c("Year", "GDP","Revenue","Employment")
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = GDP),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = GDP),color = "red") +
+  labs(
+    title = "CV RMSE for GDP",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = Revenue),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = Revenue),color = "red") +
+  labs(
+    title = "CV RMSE for Revenue",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
+
+ggplot() + 
+  geom_line(data = rmse1, aes(x = Year, y = Employment),color = "blue") +
+  geom_line(data = rmse2, aes(x = Year, y = Employment),color = "red") +
+  labs(
+    title = "CV RMSE for Employment",
+    x = "Date",
+    y = "RMSE",
+    guides(colour=guide_legend(title="Fit")))
 
 ```
 
- 
+Based on cross-validation results, it was found that the VAR(1) model exhibits a lower RMSE compared to the VAR(2) model. This lower RMSE indicates that the VAR(1) model provides better predictive performance and is therefore considered the superior model in this context.
 
 :::
+
+
+### Forecast and Findings
+::: panel-tabset
+
+### Air Cargo(Domestic) ~ Air Cargo(International) + Fuel Price + TSI
+
+The most optimal model I fitted is the VAR(3) model.
+```{r}
+#| warning: false
+#revenue_ts
+var <- vars::VAR(ts_obj1, p=3, type='both')
+
+forecast(var) %>%
+  autoplot() + xlab("Year")
+```
+
+The forecast of the variables appears to capture the trend of the original data adequately. While the fuel trend shows a slight decrease, the trends in other variables appear relatively stable or flat. Furthermore, the model seems to struggle in capturing the seasonality present in the data.
+
+
+### Employment ~ Air Cargo(Domestic) + Air Cargo(International)
+
+The most optimal model I fitted is the VAR(4) model.
+
+```{r}
+#| warning: false
+#emp_ts
+var <- vars::VAR(ts_obj2, p=4, type='both')
+
+forecast(var) %>%
+  autoplot() + xlab("Year")
+```
+
+The forecast of the variables appears to capture the trend of the original data adequately. While the employment trend shows a decreasing trend, the trends in other variables exhibit fluctuations, with an initial increase followed by a subsequent drop. However, it seems that the model struggles to capture the seasonality present in the data.
+
+
+### VAR: GDP ~ Revenue + Employment (Air)
+
+The most optimal model I fitted is the VAR(1) model.
+```{r}
+#| warning: false
+#air_ts
+var <- vars::VAR(ts_obj, p=1, type='both')
+
+forecast(var) %>%
+  autoplot() + xlab("Year")
+```
+
+The forecast of the variables does not appear to capture the trend of the original data adequately. All the variables exhibit fluctuations, characterized by an initial increase followed by a subsequent drop, which repeats over time. Additionally, the model diagnostics show no significant correlation among the variables, suggesting that the model performance may not be optimal.
+
+:::
+
+### Findings
+
+The first model appears to capture the trend of the original data adequately. While the fuel trend shows a slight decrease, the trends in other variables appear relatively stable or flat. Furthermore, the model seems to struggle in capturing the seasonality present in the data.
+
+The second model appears to capture the trend of the original data adequately. While the employment trend shows a decreasing trend, the trends in other variables exhibit fluctuations, with an initial increase followed by a subsequent drop. However, it seems that the model struggles to capture the seasonality present in the data.
+
+The third model does not appear to capture the trend of the original data adequately. All the variables exhibit fluctuations, characterized by an initial increase followed by a subsequent drop, which repeats over time. Additionally, the model diagnostics show no significant correlation among the variables, suggesting that the model performance may not be optimal.

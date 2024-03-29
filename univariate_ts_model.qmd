@@ -369,6 +369,10 @@ ARMA_res[[which(ARMA_AIC == min(ARMA_AIC))]]
 ## get BIC values for model evaluation
 ARMA_BIC<-sapply(ARMA_res,function(x) x$bic)
 ARMA_res[[which(ARMA_BIC == min(ARMA_BIC))]]
+
+## get AICC values for model evaluation
+ARMA_AICC<-sapply(ARMA_res,function(x) x$aicc)
+ARMA_res[[which(ARMA_AICC == min(ARMA_AICC))]]
 ```
 
 The model with the lowest AIC and BIC is ARIMA(2,2,3).
@@ -494,6 +498,10 @@ ARMA_res[[which(ARMA_AIC == min(ARMA_AIC))]]
 ## get BIC values for model evaluation
 ARMA_BIC<-sapply(ARMA_res,function(x) x$bic)
 ARMA_res[[which(ARMA_BIC == min(ARMA_BIC))]]
+
+## get AICC values for model evaluation
+ARMA_AICC<-sapply(ARMA_res,function(x) x$aicc)
+ARMA_res[[which(ARMA_AICC == min(ARMA_AICC))]]
 ```
 
 The model with the lowest AIC and BIC is ARIMA(0,1,1). 
@@ -533,6 +541,10 @@ ARMA_res[[which(ARMA_AIC == min(ARMA_AIC))]]
 ## get BIC values for model evaluation
 ARMA_BIC<-sapply(ARMA_res,function(x) x$bic)
 ARMA_res[[which(ARMA_BIC == min(ARMA_BIC))]]
+
+## get AICC values for model evaluation
+ARMA_AICC<-sapply(ARMA_res,function(x) x$aicc)
+ARMA_res[[which(ARMA_AICC == min(ARMA_AICC))]]
 ```
 
 The model with the lowest AIC and BIC is ARIMA(0,1,0).
@@ -572,6 +584,7 @@ Upon inspection of the time plot of the standardized residuals above, no discern
 
 ARMA_res_employment<-Arima(y=employment_ts,order = c(2,2,3), include.drift = TRUE)
 summary(ARMA_res_employment)
+
 ```
 
 **Equation**: $x_t= 2.8506*x_{t-1} -2.3724*x_{t-2} -0.6183*x_{t-3} -0.5218*x_{t-4} +w_t -0.9902*w_{t-1} +0.3708*w_{t-2} -0.3806*w_{t-3}$
@@ -591,6 +604,7 @@ Upon examining the time plot of the standardized residuals, no discernible patte
 
 ARMA_res_tsi<-Arima(y=tsi_ts,order = c(0,1,3), include.drift = TRUE)
 summary(ARMA_res_tsi)
+
 ```
 
 **Equation**: $x_t= x_{t-1} +w_t -0.07*w_{t-1} -0.0927*w_{t-2} +0.1035*w_{t-3} +0.1127$
@@ -1434,8 +1448,6 @@ fit_employment <- Arima(employment_ts, order=c(2,1,3), seasonal=c(0,1,0))
 fit_employment %>% forecast(h=12) %>% autoplot(xlab = "Date", ylab = "Employment", colour = "blue")+ggtitle('U.S. Air Transportation Employment Forecast') +theme_bw() 
 ```
 
-**Equation**: $x_t= 2.8506*x_{t-1} -2.3724*x_{t-2} -0.6183*x_{t-3} -0.5218*x_{t-4} +w_t -0.9902*w_{t-1} +0.3708*w_{t-2} -0.3806*w_{t-3}$
-
 The forecast plot illustrates a subtle decreasing trend in air transportation employment over the next 12 months. The colored bands depict the 95% confidence interval. However, the forecast appears overly smooth and lacks fluctuations. This suggests that the model may not adequately capture the inherent variability or fluctuations in the data.
 
 
@@ -1621,6 +1633,8 @@ autoplot(ups_ts, xlab = "Date", ylab = "Stock Price") +
 We observe that the SARIMA model best captures the trend, closely aligning with the observed data. The SNaive methods exhibit a comparable trajectory for the forecast. In contrast, the Mean and Naive benchmark models notably underperform, failing to accurately capture the underlying trend.
 
 ```{r}
+#| warning: false
+
 # Compute accuracy
 output1 <- accuracy(pred_ups)
 output2 <- accuracy(meanf(ups_ts, h=50))
@@ -1721,27 +1735,29 @@ cat("S-Step Forecast RMSE:", rmse, "\n")
 
 ### UPS Stock Price
 
-#```{r}
+```{r}
 #| warning: false
+
 #a seasonal cross validation using 1 steps ahead forecasts
-farima1 <- function(x, h){forecast(Arima(x, order=c(0,1,0),seasonal = c(0,1,0)),h=h)}
+#farima1 <- function(x, h){forecast(Arima(x, order=c(0,1,0),seasonal = c(0,1,0)),h=h)}
 
 # Compute cross-validated errors for up to 1 steps ahead
-e1 <- tsCV(ups_ts, forecastfunction = farima1, h = 1)
-mae1 <-abs(mean(e1,na.rm=TRUE))
-rmse1=sqrt(mean(e1^2, na.rm=TRUE)) #one-step time series cross-validation
-cat("1-Step Forecast MAE:", mae1, "\n")
-cat("1-Step Forecast RMSE:", rmse1, "\n")
+#e1 <- tsCV(ups_ts, forecastfunction = farima1, h = 1)
+#mae1 <-abs(mean(e1,na.rm=TRUE))
+#rmse1=sqrt(mean(e1^2, na.rm=TRUE)) #one-step time series cross-validation
+#cat("1-Step Forecast MAE:", mae1, "\n")
+#cat("1-Step Forecast RMSE:", rmse1, "\n")
 
 # Compute cross-validated errors for up to 365 steps ahead
-e <- tsCV(ups_ts, forecastfunction = farima1, h = 365)
+#e <- tsCV(ups_ts, forecastfunction = farima1, h = 365)
 
 # Compute the AME and RMSE values
-mae <-abs(mean(e,na.rm=TRUE))
-rmse <-sqrt(mean(e^2, na.rm=TRUE)) #s-step time series cross-validation
-cat("S-Step Forecast MAE:", mae, "\n")
-cat("S-Step Forecast RMSE:", rmse, "\n")
+#mae <-abs(mean(e,na.rm=TRUE))
+#rmse <-sqrt(mean(e^2, na.rm=TRUE)) #s-step time series cross-validation
+#cat("S-Step Forecast MAE:", mae, "\n")
+#cat("S-Step Forecast RMSE:", rmse, "\n")
 
 ```
 
+The computation exceeds the runtime limit, preventing me from generating the output.
 :::
