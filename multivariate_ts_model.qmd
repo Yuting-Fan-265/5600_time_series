@@ -34,7 +34,9 @@ In analyzing the temporal dynamics of the U.S. freight transportation industry, 
 
 When considering modeling approaches, both ARIMAX and VAR models offer distinct advantages for capturing the complexities of freight transportation dynamics. ARIMAX models are well-suited for incorporating economic indicators, fuel prices, and infrastructure investment as variables. Leveraging their autoregressive and exogenous components, ARIMAX models can effectively account for temporal patterns and external influences, thereby improving the accuracy of freight volume forecasts over time. On the other hand, VAR models excel in analyzing the dynamic relationships among multiple variables. They provide a versatile framework for examining the simultaneous effects of economic indicators, fuel prices, regulatory changes, and technological advancements on freight transportation dynamics. With their capacity to capture intricate interactions and feedback mechanisms, VAR models offer valuable insights into the evolving landscape of the freight transportation industry.
 
-For the ARIMAX model, 
+In my ARIMAX/SARIMAX model, I've chosen to focus on two key datasets. Firstly, the COVID-19 pandemic has reshaped societal norms significantly, leading to notable shifts in consumer behaviors and lifestyle patterns. With restrictions in place and mobility constrained, there has been a substantial surge in demand for delivery services. UPS, as a prominent player in the U.S. delivery service sector, has been instrumental in meeting this increased demand. My goal is to examine whether there exists a relationship between the number of new COVID-19 cases and UPS stock prices. To accomplish this, I will employ an ARIMAX model to delve into the dynamics between these variables and discern any potential impact of the pandemic on UPS stock performance.
+
+Secondly, fuel prices play a pivotal role in the freight industry, exerting a significant influence on operational costs. I aim to investigate whether fluctuations in fuel prices affect freight values, particularly within the international freight sector. Additionally, I aim to assess the potential impact of the Transportation Services Index (TSI) on freight values. To explore these relationships comprehensively, I intend to utilize the SARIMAX model. This model facilitates the analysis of time series data while accounting for external factors such as fuel prices and the TSI. Through this analysis, I seek to gain insights into the interplay between fuel prices, the TSI, and the values of Canadian freight in the U.S. landscape. 
 
 For the VAR model, the analysis delves into three distinct sets of variables within the air cargo industry to uncover their interrelationships and implications. Firstly, it examines the connections between Air Cargo (Domestic), Air Cargo (International), Fuel Price, and the Transportation Services Index (TSI). This investigation aims to discern whether fluctuations in air cargo volumes, both domestically and internationally, correlate with changes in fuel prices and TSI, thereby providing insights into the broader drivers of the air cargo industry.
 
@@ -60,23 +62,24 @@ covid <- read.csv("data/clean_data/covid.csv",header =TRUE, sep = ',')
 covid <- subset(covid, select = c(date, new_cases_per_million))
 covid <- na.omit(covid)
 covid <- head(covid, -6)
+covid$new_cases_per_million[covid$new_cases_per_million == 0.000] <- 0.001
 
 # combine the data
-ups_covid <- data.frame("UPS"=ups$UPS.Adjusted, "COVID"=covid$new_cases_per_million)
+ups_covid <- data.frame("UPS"=log(ups$UPS.Adjusted), "COVID"=log(covid$new_cases_per_million))
 #(head(ups_covid))
 
 # Convert to a Time Series Component 
-ups_covid_ts <- ts(ups_covid, start = decimal_date(as.Date("2000-01-02", format = "%Y-%m-%d")), frequency = 52)
+ups_covid_ts <- ts(ups_covid, start = decimal_date(as.Date("2020-01-02", format = "%Y-%m-%d")), frequency = 52)
 
 head(ups_covid_ts)
 
-VARselect(ups_covid_ts, lag.max=10, type="both")
-summary(vars::VAR(ups_covid_ts, p=3, type='both'))
+#VARselect(ups_covid_ts, lag.max=10, type="both")
+#summary(vars::VAR(ups_covid_ts, p=3, type='both'))
 ```
 
-### ARIMAX: Canada Freight Value ~ Fuel Price + TSI (Monthly)
+### SARIMAX: Canada Freight Value ~ Fuel Price + TSI (Monthly)
 ```{r}
-#  ARIMAX: Canada Freight Value and Fuel Price, TSI (monthly)
+#  SARIMAX: Canada Freight Value and Fuel Price, TSI (monthly)
 # get the canada freight monthly value
 canada <- read.csv("data/clean_data/24monthly_canada_freight.csv")
 canada <- canada[,c("Date","Value")]
@@ -101,8 +104,8 @@ canada_value_ts <- ts(canada_value, start = decimal_date(as.Date("2006-01-01", f
 
 head(canada_value_ts)
 
-VARselect(canada_value_ts, lag.max=10, type="both")
-summary(vars::VAR(canada_value_ts, p=2, type='both'))
+#VARselect(canada_value_ts, lag.max=10, type="both")
+#summary(vars::VAR(canada_value_ts, p=2, type='both'))
 ```
 
 ###  VAR: Air Cargo(Domestic) ~ Air Cargo(International) + Fuel Price + TSI (Monthly) 
@@ -133,7 +136,6 @@ revenue_ <- data.frame("Domestic"=cargo$Domestic, "International"=cargo$Internat
 revenue_ts <- ts(revenue_, start = decimal_date(as.Date("2003-01-01", format = "%Y-%m-%d")), frequency = 12)
 
 head(revenue_ts)
-
 ```
 
 ### VAR: Employment ~ Air Cargo(Domestic) + Air Cargo(International) (Monthly) 
@@ -156,7 +158,6 @@ emp_ <- data.frame("Employment"=employment$Transportation.Employment...Air.Trans
 emp_ts <- ts(emp_, start = decimal_date(as.Date("2005-01-01", format = "%Y-%m-%d")), frequency = 12)
 
 head(emp_ts)
-
 ```
 
 ###  VAR: GDP ~ Revenue + Employment (Air, Yearly)
@@ -193,22 +194,25 @@ air_ <- data.frame("GDP"=gdp$Value, "Revenue"=air$Value, "Employment"=employment
 air_ts <- ts(air_, start = decimal_date(as.Date("2012-01-01", format = "%Y-%m-%d")), frequency = 1)
 
 (air_ts)
-
 ```
 
 
 
 ## ARIMAX/SARIMAX
 
+### Select Variables
 ::: panel-tabset
 
 ### UPS Stock Price ~ Covid New Cases
 ```{r}
 #| warning: false
 #ups_covid_ts
+autoplot(ups_covid_ts, facets = T) +
+  labs(x="Date", y="", title = "UPS Stock Price and Covid New Cases")
 
 ```
 
+The COVID-19 pandemic has been a profound influence on society, dramatically altering people's lifestyles and behaviors. With restrictions in place and mobility limited, there has been a significant surge in demand for delivery services. UPS, as a leading company in the delivery service sector in the U.S., stands at the forefront of meeting this increased demand. I aim to investigate whether there is a relationship between the number of new COVID-19 cases and UPS stock prices. To do this, I will utilize an ARIMAX model to explore the dynamics between these variables and discern any potential impact of the pandemic on UPS stock performance.
  
 
 ### Canada Freight Value ~ Fuel Price + TSI
@@ -216,10 +220,454 @@ air_ts <- ts(air_, start = decimal_date(as.Date("2012-01-01", format = "%Y-%m-%d
 ```{r}
 #| warning: false
 #canada_value_ts
-
+autoplot(canada_value_ts, facets = T) +
+  labs(x="Date", y="", title = "Canada Freight Value and Fuel Price and TSI")
 ```
 
+Fuel prices play a crucial role in the freight industry, significantly impacting operational costs. I aim to investigate whether fluctuations in fuel prices influence freight values, particularly in the international freight sector. Additionally, I seek to understand the potential impact of the Transportation Services Index (TSI) on freight values. To explore these relationships, I plan to utilize the SARIMAX model, which allows for the analysis of time series data while considering exogenous variables such as fuel prices and the TSI. By examining these dynamics, I hope to gain insights into the interplay between fuel prices, the TSI, and the Canada freight values in the U.S..
+
 :::
+
+
+### Auto.Arima()
+::: panel-tabset
+
+### UPS Stock Price ~ Covid New Cases
+```{r}
+#| warning: false
+#ups_covid_ts
+fit0 <- auto.arima(ups_covid_ts[,'UPS'], xreg=ups_covid_ts[,'COVID'])
+summary(fit0)
+
+checkresiduals(fit0)
+```
+
+Select model: Regression with ARIMA(0,1,0)(1,0,0)[52] errors. 
+
+### Canada Freight Value ~ Fuel Price + TSI
+
+```{r}
+#| warning: false
+#canada_value_ts
+xreg <- cbind(fuel = canada_value_ts[, "Fuel"],
+              tsi = canada_value_ts[, "TSI"])
+fit0 <- auto.arima(canada_value_ts[,'Canada_value'], xreg=xreg)
+summary(fit0)
+
+checkresiduals(fit0)
+```
+
+Select model: Regression with ARIMA(1,0,0)(1,0,0)[12] errors.
+:::
+
+
+### Manual Method
+::: panel-tabset
+
+### UPS Stock Price ~ Covid New Cases
+```{r}
+#| warning: false
+#ups_covid_ts
+fit.reg1 <- lm(UPS ~ COVID, data=ups_covid_ts)
+summary(fit.reg1)
+```
+
+COVID is significant.
+
+```{r}
+res.fit1<-ts(residuals(fit.reg1),star=decimal_date(as.Date("2020-01-02",format = "%Y-%m-%d")),frequency = 52)
+
+ggtsdisplay(res.fit1)
+```
+
+The data is not stationary, it needs differencing.
+
+```{r}
+ggtsdisplay(diff(res.fit1))
+```
+
+p=2,3,d=1,q=2,3,P=1,D=0,Q=0
+
+```{r}
+SARIMA.c=function(p1,p2,q1,q2,P1,P2,Q1,Q2,data){
+  
+  temp=c()
+  d=0
+  D=0
+  s=52
+  
+  i=1
+  temp= data.frame()
+  ls=matrix(rep(NA,9*150),nrow=150)
+  
+  
+  for (p in p1:p2)
+  {
+    for(q in q1:q2)
+    {
+      for(P in P1:P2)
+      {
+        for(Q in Q1:Q2)
+        {
+          if(p+d+q+P+D+Q<=10)
+          {
+            
+            model<- Arima(data,order=c(p-1,d,q-1),seasonal=c(P-1,D,Q-1))
+            ls[i,]= c(p-1,d,q-1,P-1,D,Q-1,model$aic,model$bic,model$aicc)
+            i=i+1
+            #print(i)
+            
+          }
+          
+        }
+      }
+    }
+    
+  }
+  
+  temp= as.data.frame(ls)
+  names(temp)= c("p","d","q","P","D","Q","AIC","BIC","AICc")
+  
+  temp
+  
+}
+
+# p=2,3,d=1,q=2,3,P=1,D=0,Q=0
+
+output=SARIMA.c(p1=1,p2=4,q1=1,q2=3,P1=1,P2=1,Q1=1,Q2=1,data=res.fit1)
+#output
+
+output[which.min(output$AIC),] 
+output[which.min(output$BIC),]
+output[which.min(output$AICc),]
+```
+
+Best models: ARIMA(3,0,2)x(0,0,0)[52], auto.arima suggested: ARIMA(0,1,0)(1,0,0)[52]
+
+Model diagnostics to compare the two models.
+
+Model1: ARIMA(3,0,2)x(0,0,0)[52]
+```{r}
+# model1: ARIMA(3,0,2)x(0,0,0)[52]
+set.seed(1234)
+model_output12 <- capture.output(sarima(res.fit1, 3,0,2, 0,0,0,52)) 
+cat(model_output12[105:116], model_output12[length(model_output12)], sep = "\n")
+```
+
+Model2: ARIMA(0,1,0)(1,0,0)[52]
+```{r}
+# model2: ARIMA(0,1,0)(1,0,0)[52]
+set.seed(1234)
+model_output12 <- capture.output(sarima(res.fit1, 0,1,0, 1,0,0,52)) 
+cat(model_output12[20:27], model_output12[length(model_output12)], sep = "\n")
+```
+
+The Standard Residual Plot both appears to have some irregularities in the mean and variation.
+
+The Autocorrelation Function (ACF) plot model1 shows almost no correlation indicating that the model has harnessed everything and all that is left is white noise. This indicates a good model fit. model2 shows some correlations left.
+
+The Quantile-Quantile (Q-Q) Plot both shows near normality.
+
+The Ljung-Box test results model1 reveal values above the 0.05 (5% significance) threshold, indicating a good fit.
+
+$ttable: All coefficients are significant below a 0.05 threshold except one in model1.
+
+When comparing the two model diagnostics, the manual model is better, which was Regression with ARIMA(3,0,2)(0,0,0)[52] errors.
+ 
+
+### Canada Freight Value ~ Fuel Price + TSI
+
+```{r}
+#| warning: false
+#canada_value_ts
+fit.reg <- lm( Canada_value ~ Fuel+ TSI, data=canada_value_ts)
+summary(fit.reg)
+```
+
+Fuel and TSI both be significant.
+
+```{r}
+res.fit<-ts(residuals(fit.reg),star=decimal_date(as.Date("2006-01-01",format = "%Y-%m-%d")),frequency = 12)
+
+ggtsdisplay(res.fit)
+```
+
+The data is not stationary, it needs differencing.
+
+```{r}
+ggtsdisplay(diff(res.fit, lag=12))
+```
+
+p=1,d=0,q=1,2,3,P=1,2,D=1,Q=1
+
+```{r}
+SARIMA.c=function(p1,p2,q1,q2,P1,P2,Q1,Q2,d1,d2,data){
+  
+  temp=c()
+  d=0
+  D=1
+  s=12
+  
+  i=1
+  temp= data.frame()
+  ls=matrix(rep(NA,9*150),nrow=150)
+  
+  
+  for (p in p1:p2)
+  {
+    for(q in q1:q2)
+    {
+      for(P in P1:P2)
+      {
+        for(Q in Q1:Q2)
+        {
+          for(d in d1:d2)
+       
+        {
+          if(p+d+q+P+D+Q<=10)
+          {
+            
+            model<- Arima(data,order=c(p-1,d,q-1),seasonal=c(P-1,D,Q-1))
+            ls[i,]= c(p-1,d,q-1,P-1,D,Q-1,model$aic,model$bic,model$aicc)
+            i=i+1
+            #print(i)
+            
+          }
+          
+        }
+      }
+    }
+    
+  }
+  
+  }
+  temp= as.data.frame(ls)
+  names(temp)= c("p","d","q","P","D","Q","AIC","BIC","AICc")
+  
+  temp
+  
+}
+
+# p=1,d=0,q=1,2,3,P=1,2,D=1,Q=1
+
+output=SARIMA.c(p1=1,p2=2,q1=1,q2=2,P1=1,P2=3,Q1=1,Q2=2,d1=0,d2=1,data=res.fit)
+#output
+
+output[which.min(output$AIC),] 
+output[which.min(output$BIC),]
+output[which.min(output$AICc),]
+```
+
+Best models: ARIMA(1,0,0)x(2,1,1)[12], auto.arima suggested: ARIMA(1,0,0)(1,0,0)[12]
+
+Model diagnostics to compare the two models.
+
+Model1: ARIMA(1,0,0)x(2,1,1)[12]
+```{r}
+# model1: ARIMA(1,0,0)x(2,1,1)[12]
+set.seed(1234)
+model_output12 <- capture.output(sarima(res.fit, 1,0,0, 2,1,1,12)) 
+cat(model_output12[30:40], model_output12[length(model_output12)], sep = "\n")
+```
+
+Model2: ARIMA(1,0,0)x(1,0,0)[12]
+```{r}
+# model2: ARIMA(1,0,0)x(1,0,0)[12]
+set.seed(1234)
+model_output12 <- capture.output(sarima(res.fit, 1,0,0, 1,0,0,12)) 
+cat(model_output12[41:49], model_output12[length(model_output12)], sep = "\n")
+```
+
+The Standard Residual Plot both appears to have some irregularities in the mean and variation.
+
+The Autocorrelation Function (ACF) plot model1 shows almost no correlation indicating that the model has harnessed everything and all that is left is white noise. This indicates a good model fit. model2 shows some correlations left.
+
+The Quantile-Quantile (Q-Q) Plot both shows near normality.
+
+The Ljung-Box test results model1 reveal values above the 0.05 (5% significance) threshold, indicating a good fit.
+
+$ttable: All coefficients are significant below a 0.05 threshold.
+
+When comparing the two model diagnostics, the manual model is better, which was Regression with ARIMA(1,0,0)(2,1,1)[12] errors.
+:::
+
+
+### Cross-Validation
+::: panel-tabset
+
+### UPS Stock Price ~ Covid New Cases
+```{r}
+#| warning: false
+#ups_covid_ts
+n=length(res.fit1) #170  156
+k=52
+
+ #n-k=104; 104/52=2;
+
+res <- res.fit1[1:156] 
+rmse1 <- matrix(NA, 2,52)
+rmse2 <- matrix(NA, 2,52)
+
+st <- tsp(res.fit1)[1]+(k-1)/52 
+
+for(i in 1:2)
+{
+  xtrain <- window(res.fit1, end=st + i-1)
+  xtest <- window(res.fit1, start=st + (i-1) + 1/52, end=st + i)
+  
+  #models:  ARIMA(0,1,0)x(1,0,0)[52]. and ARIMA(3,0,2)(0,0,0)[52]
+  
+  fit <- Arima(xtrain, order=c(0,1,0), seasonal=list(order=c(1,0,0), period=52),
+                include.drift=TRUE, method="ML")
+  fcast <- forecast(fit, h=52)
+  
+  fit2 <- Arima(xtrain, order=c(3,0,2), seasonal=list(order=c(0,0,0), period=52),
+                include.drift=TRUE, method="ML")
+  fcast2 <- forecast(fit2, h=52)
+  
+  
+
+  rmse1[i,1:length(xtest)]  <- sqrt((fcast$mean-xtest)^2)
+  rmse2[i,1:length(xtest)] <- sqrt((fcast2$mean-xtest)^2)
+
+  
+}
+
+plot(1:52, colMeans(rmse1,na.rm=TRUE), type="l", col=2, xlab="horizon", ylab="RMSE")
+lines(1:52, colMeans(rmse2,na.rm=TRUE), type="l",col=3)
+
+legend("topleft",legend=c("fit1: auto.arima model","fit2: manual model"),col=2:3,lty=1)
+```
+
+The auto.arima model had lower RMSE compared to the manual model. Therefore, the best model is ARIMA(0,1,0)(1,0,0)[52].
+
+### Canada Freight Value ~ Fuel Price + TSI
+
+```{r}
+#| warning: false
+#canada_value_ts
+n=length(res.fit) #205  204
+k=48
+
+ #n-k=156; 156/12=13;
+
+res <- res.fit[1:204] 
+rmse1 <- matrix(NA, 13,12)
+rmse2 <- matrix(NA, 13,12)
+
+st <- tsp(res.fit)[1]+(k-1)/12 
+
+for(i in 1:13)
+{
+  xtrain <- window(res.fit, end=st + i-1)
+  xtest <- window(res.fit, start=st + (i-1) + 1/12, end=st + i)
+  
+  #models:  ARIMA(1,0,0)x(1,0,0)[12]. and ARIMA(1,0,0)(2,1,1)[12]
+  
+  fit <- Arima(xtrain, order=c(1,0,0), seasonal=list(order=c(1,0,0), period=12),
+                include.drift=TRUE, method="ML")
+  fcast <- forecast(fit, h=12)
+  
+  fit2 <- Arima(xtrain, order=c(1,0,0), seasonal=list(order=c(2,1,1), period=12),
+                include.drift=TRUE, method="ML")
+  fcast2 <- forecast(fit2, h=12)
+  
+  
+
+  rmse1[i,1:length(xtest)]  <- sqrt((fcast$mean-xtest)^2)
+  rmse2[i,1:length(xtest)] <- sqrt((fcast2$mean-xtest)^2)
+
+  
+}
+
+plot(1:12, colMeans(rmse1,na.rm=TRUE), type="l", col=2, xlab="horizon", ylab="RMSE")
+lines(1:12, colMeans(rmse2,na.rm=TRUE), type="l",col=3)
+
+legend("topleft",legend=c("fit1: auto.arima model","fit2: manual model"),col=2:3,lty=1)
+```
+
+The manual model had lower RMSE compared to the auto.arima model. Therefore, the best model is ARIMA(1,0,0)(2,1,1)[12].
+
+:::
+
+
+### Model Fitting
+::: panel-tabset
+
+### UPS Stock Price ~ Covid New Cases
+```{r}
+#| warning: false
+#ups_covid_ts
+fit <- Arima(ups_covid_ts[,'UPS'], order=c(0,1,0), seasonal=c(1,0,0), xreg=ups_covid_ts[,'COVID'])
+summary(fit)
+```
+
+**Equation:**  $y_t = -0.0008x_t + (1-B)n_t + (1-0.0795B) z_t$ 
+
+### Canada Freight Value ~ Fuel Price + TSI
+
+```{r}
+#| warning: false
+#canada_value_ts
+xreg <- cbind(fuel = canada_value_ts[, "Fuel"],
+              tsi = canada_value_ts[, "TSI"])
+fit0 <- Arima(canada_value_ts[,'Canada_value'], order=c(1,0,0), seasonal=c(2,1,1), xreg=xreg)
+summary(fit0)
+```
+
+**Equation:**  $y_t =  0.0601x_t{fuel} + 0.3302x_t{tsi} + \phi(B) \Phi(B^{12}) (1-B^{12})n_t + \Theta (B^{12}) z_t$
+
+$\phi(B) = 1 - 0.7016B$
+
+$\Phi(B^s) = 1 - 0.1968B^{12} + 0.2513B^{24}$
+
+$\Theta (B^s) = 1 + 0.8508B^{12}$
+
+:::
+
+
+### Forecast
+::: panel-tabset
+
+### UPS Stock Price ~ Covid New Cases
+```{r}
+#| warning: false
+#ups_covid_ts
+covid_fit <- auto.arima(ups_covid_ts[,'COVID'])
+fcov <- forecast(covid_fit, 52)
+
+fcast <- forecast(fit, xreg=fcov$mean,52) 
+autoplot(fcast, main="Forecast of UPS Stock Price for the next year") + xlab("Year") +
+  ylab("UPS Stock Price")
+```
+
+The forecast of the UPS stock price appears to be relatively flat, indicating that the model may not adequately capture the fluctuations observed in the original data.
+
+
+### Canada Freight Value ~ Fuel Price + TSI
+
+```{r}
+#| warning: false
+#canada_value_ts
+fuel_fit <- auto.arima(canada_value_ts[,'Fuel'])
+ffuel <- forecast(fuel_fit, 36)
+tsi_fit <- auto.arima(canada_value_ts[,'TSI'])
+ftsi <- forecast(tsi_fit, 36)
+
+fxreg <- cbind(fuel = ffuel$mean, tsi = ftsi$mean) 
+fcast <- forecast(fit0, xreg=fxreg,36) 
+autoplot(fcast, main="Forecast of Canada Freight Value for the next three years") + xlab("Year") +
+  ylab("Canada Freight Value")
+```
+
+The trend of the Canada freight value is observed to be decreasing, and the model appears to capture the seasonal fluctuations present in the original data.
+:::
+
+### Findings
+
+For the UPS stock price and COVID-19 new cases, there appears to be a correlation between the two variables, with the UPS stock price showing an increase alongside the rise in COVID-19 new cases. However, since the COVID-19 pandemic ended in 2023, the UPS stock price is predicted to remain relatively flat with a slight decrease.
+
+Regarding the Canada freight value, both the fuel price and TSI exhibit correlations with the freight value, showcasing seasonal fluctuations. The trend of the Canada freight value over the next three years is expected to decrease.
 
 
 
@@ -236,7 +684,6 @@ autoplot(revenue_ts, facets=TRUE) +
   xlab("Year") + ylab("") +
   ggtitle("Air Cargo(Domestic), Air Cargo(International), Fuel Price and TSI in USA")
 ```
-
 
 I have selected Air Cargo (Domestic), Air Cargo (International), Fuel Price, and TSI as variables for analysis. My objective is to explore the interdependencies among these variables. Specifically, I aim to understand whether there is a mutual influence between domestic and international air cargo, whether fuel prices affect air cargo volumes, and whether the TSI correlates with the other variables. By examining the relationships among these variables, I hope to gain insights into the dynamics of the air cargo industry and its drivers.
 
@@ -344,8 +791,8 @@ for(i in 1:16) #here  is (n-k ) / 12
   xtest <- window(ts_obj1, start=st + (i-1) + 1/12, end=st + i)
   
   ######## first Model ############
-  fit <- vars::VAR(ts_obj1, p=4, type='both')
-  fcast <- predict(fit, n.ahead = 12)
+  fit <- vars::VAR(xtrain, p=4, type='both')
+  fcast <- predict(fit, newdata=xtest, n.ahead = 12)
   fdo<-fcast$fcst$Domestic
   fin<-fcast$fcst$International
   ffuel<-fcast$fcst$Fuel
@@ -367,8 +814,8 @@ for(i in 1:16) #here  is (n-k ) / 12
   
   
   ######## Second Model ############
-  fit2 <- vars::VAR(ts_obj1, p=3, type='both')
-  fcast2 <- predict(fit2, n.ahead = 12)
+  fit2 <- vars::VAR(xtrain, p=3, type='both')
+  fcast2 <- predict(fit2, newdata=xtest, n.ahead = 12)
   
   fdo<-fcast2$fcst$Domestic
   fin<-fcast2$fcst$International
@@ -460,8 +907,8 @@ for(i in 1:14) #here  is (n-k ) / 12
   xtest <- window(ts_obj2, start=st + (i-1) + 1/12, end=st + i)
   
   ######## first Model ############
-  fit <- vars::VAR(ts_obj2, p=3, type='both')
-  fcast <- predict(fit, n.ahead = 12)
+  fit <- vars::VAR(xtrain, p=3, type='both')
+  fcast <- predict(fit, newdata=xtest, n.ahead = 12)
   fin<-fcast$fcst$International
   fdo<-fcast$fcst$Domestic
   femp<-fcast$fcst$Employment
@@ -482,8 +929,8 @@ for(i in 1:14) #here  is (n-k ) / 12
   
   
   ######## Second Model ############
-  fit2 <- vars::VAR(ts_obj2, p=4, type='both')
-  fcast2 <- predict(fit2, n.ahead = 12)
+  fit2 <- vars::VAR(xtrain, p=4, type='both')
+  fcast2 <- predict(fit2, newdata=xtest, n.ahead = 12)
   
   fin<-fcast2$fcst$International
   fdo<-fcast2$fcst$Domestic
@@ -638,7 +1085,7 @@ Based on cross-validation results, it was found that the VAR(1) model exhibits a
 :::
 
 
-### Forecast and Findings
+### Forecast
 ::: panel-tabset
 
 ### Air Cargo(Domestic) ~ Air Cargo(International) + Fuel Price + TSI
