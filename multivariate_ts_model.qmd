@@ -665,9 +665,9 @@ The trend of the Canada freight value is observed to be decreasing, and the mode
 
 ### Findings
 
-For the UPS stock price and COVID-19 new cases, there appears to be a correlation between the two variables, with the UPS stock price showing an increase alongside the rise in COVID-19 new cases. However, since the COVID-19 pandemic ended in 2023, the UPS stock price is predicted to remain relatively flat with a slight decrease.
+For the UPS stock price and COVID-19 new cases, there appears to be a correlation between the two variables, with the UPS stock price showing an increase alongside the rise in COVID-19 new cases. However, since the COVID-19 pandemic ended in 2023, the UPS stock price is predicted to remain relatively flat with a slight decrease. However, the model may not adequately capture the fluctuations observed in the original data.
 
-Regarding the Canada freight value, both the fuel price and TSI exhibit correlations with the freight value, showcasing seasonal fluctuations. The trend of the Canada freight value over the next three years is expected to decrease.
+Regarding the Canada freight value, both the fuel price and TSI exhibit correlations with the freight value, showcasing seasonal fluctuations. The trend of the Canada freight value over the next three years is expected to decrease. The model appears to capture the seasonal fluctuations present in the original data.
 
 
 

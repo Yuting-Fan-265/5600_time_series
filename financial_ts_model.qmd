@@ -5,6 +5,397 @@ format:
     code-fold: true
     embed-resources: true
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
+
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(forecast)
+library(astsa) 
+library(xts)
+library(tseries)
+library(fpp2)
+library(fma)
+library(lubridate)
+library(tidyverse)
+library(TSstudio)
+library(quantmod)
+library(tidyquant)
+library(plotly)
+library(TSA)
+library(fGarch) 
+library(dynlm)
+```
+
+
+## Plotting Data
+::: panel-tabset
+
+### UPS Stock Price
+```{r}
+library('quantmod')
+getSymbols("UPS", from="2010-01-01", src="yahoo")
+head(UPS)
+
+#any(is.na(UPS))
+
+ups.close<- Ad(UPS)
+
+# candlestick plot of the UPS prices
+chartSeries(UPS, type = "candlesticks",theme='white')
+
+# returns plot
+returns_ups = diff(log(ups.close))
+chartSeries(returns_ups, theme="white")
+```
+
+The data exhibits non-stationarity and displays volatility clustering in the returns, particularly evident around the period from 2020 to 2022.
+
+### JBHT Stock Price
+```{r}
+library('quantmod')
+getSymbols("JBHT", from="2010-01-01", src="yahoo")
+head(JBHT)
+
+#any(is.na(UPS))
+
+jbht.close<- Ad(JBHT)
+
+# candlestick plot of the UPS prices
+chartSeries(JBHT, type = "candlesticks",theme='white')
+
+# returns plot
+returns_jbht = diff(log(jbht.close))
+chartSeries(returns_jbht, theme="white")
+```
+The data exhibits non-stationarity and displays volatility clustering in the returns, particularly evident around the period from 2020 to 2022.
+:::
+
+
+## ACF and PACF Plots
+::: panel-tabset
+
+### UPS Stock Price
+```{r}
+# returns_ups
+ggAcf(returns_ups, na.action = na.pass) 
+ggPacf(returns_ups, na.action = na.pass) 
+```
+
+The returns are weakly stationary with little instances of high correlations. p=4, q=4. It needs ARIMA model.
+
+```{r}
+ggAcf(returns_ups^2, na.action = na.pass) 
+ggPacf(returns_ups^2, na.action = na.pass) 
+```
+
+The squared returns show significant correlations at lag orders p=1 to 6 and q=0 to 5. Given this observation, it would be more appropriate to utilize an GARCH model.
+
+### JBHT Stock Price
+```{r}
+# returns_jbht
+ggAcf(returns_jbht, na.action = na.pass) 
+ggPacf(returns_jbht, na.action = na.pass) 
+```
+
+The returns are weakly stationary with little instances of high correlations.  p=1,4, q=1,4,5. It needs ARIMA model.
+
+```{r}
+ggAcf(returns_jbht^2, na.action = na.pass) 
+ggPacf(returns_jbht^2, na.action = na.pass) 
+```
+
+The squared returns show significant correlations at lag orders p=1 to 6 and q=0 to 5. Given this observation, it would be more appropriate to utilize an GARCH model.
+:::
+
+
+## Fitting ARIMA
+::: panel-tabset
+
+### UPS Stock Price
+```{r, warning=FALSE}
+# returns_ups
+log.ups <- log(ups.close)
+ggtsdisplay(diff(log.ups))
+
+```
+The model for “differenced log data” series is thus a white noise, and the “original model” resembles random walk model ARIMA(0,1,0).
+
+```{r,message=FALSE,warning=FALSE}
+
+######################## Check for different combinations ########
+
+
+d=0
+i=1
+temp= data.frame()
+ls=matrix(rep(NA,6*100),nrow=100) # roughly nrow = 5x5x2
+
+
+for (p in 1:6)# p=1,2,
+{
+  for(q in 1:6)# q=1,2,
+  {
+    for(d in 0:1)# 
+    {
+      
+      if(p-1+d+q-1<=8)
+      {
+        
+        model<- Arima(log.ups,order=c(p-1,d,q-1),include.drift=TRUE) 
+        ls[i,]= c(p-1,d,q-1,model$aic,model$bic,model$aicc)
+        i=i+1
+        #print(i)
+        
+      }
+      
+    }
+  }
+}
+
+temp= as.data.frame(ls)
+names(temp)= c("p","d","q","AIC","BIC","AICc")
+
+temp[which.min(temp$AIC),] 
+temp[which.min(temp$BIC),]
+temp[which.min(temp$AICc),]
+```
+The lowest AIC model is ARIMA(3,0,3).
+
+```{r}
+# model diagnostics
+sarima(log.ups, 0,1,0)
+sarima(log.ups, 3,0,3)
+```
+According to the model diagnostics, ARIMA(0,1,0) is the better model.
+
+Upon inspecting the Standardized Residuals plot of the model, it is evident that there is still significant variation or volatility remaining. Further modeling is required to address this issue.
+
+### JBHT Stock Price
+```{r, warning=FALSE}
+# returns_jbht
+log.jbht <- log(jbht.close)
+ggtsdisplay(diff(log.jbht))
+
+```
+The model for “differenced log data” series is thus a white noise, and the “original model” resembles random walk model ARIMA(0,1,0).
+
+```{r,message=FALSE,warning=FALSE}
+
+######################## Check for different combinations ########
+
+
+d=0
+i=1
+temp= data.frame()
+ls=matrix(rep(NA,6*100),nrow=100) # roughly nrow = 5x5x2
+
+
+for (p in 1:6)# p=1,2,
+{
+  for(q in 1:6)# q=1,2,
+  {
+    for(d in 0:1)# 
+    {
+      
+      if(p-1+d+q-1<=8)
+      {
+        
+        model<- Arima(log.jbht,order=c(p-1,d,q-1),include.drift=TRUE) 
+        ls[i,]= c(p-1,d,q-1,model$aic,model$bic,model$aicc)
+        i=i+1
+        #print(i)
+        
+      }
+      
+    }
+  }
+}
+
+temp= as.data.frame(ls)
+names(temp)= c("p","d","q","AIC","BIC","AICc")
+
+temp[which.min(temp$AIC),] 
+temp[which.min(temp$BIC),]
+temp[which.min(temp$AICc),]
+```
+The lowest AIC model is ARIMA(3,0,2).
+
+```{r}
+# model diagnostics
+sarima(log.jbht, 0,1,0)
+sarima(log.jbht, 3,0,2)
+```
+According to the model diagnostics, ARIMA(3,0,2) is the better model.
+
+Upon inspecting the Standardized Residuals plot of the model, it is evident that there is still significant variation or volatility remaining. Further modeling is required to address this issue.
+:::
+
+
+## GARCH Model on ARIMA Residuals
+::: panel-tabset
+
+### UPS Stock Price
+```{r}
+# returns_ups
+fit.ups <- Arima(log.ups, order=c(0,1,0))
+summary(fit.ups)
+res.ups <- fit.ups$res
+ggtsdisplay(res.ups^2)
+```
+The squared returns show significant correlations at lag orders p=1 to 6 and q=0 to 6. Given this observation, it would be more appropriate to utilize an GARCH model.
+
+```{r,warning=FALSE}
+model <- list() ## set counter
+cc <- 1
+for (p in 1:6) {
+  for (q in 1:6) {
+  
+model[[cc]] <- garch(res.ups,order=c(q,p),trace=F)
+cc <- cc + 1
+}
+} 
+
+## get AIC values for model evaluation
+GARCH_AIC <- sapply(model, AIC) ## model with lowest AIC is the best
+which(GARCH_AIC == min(GARCH_AIC))
+
+model[[which(GARCH_AIC == min(GARCH_AIC))]]
+```
+```{r,warning=FALSE}
+library(fGarch)
+summary(garchFit(~garch(2,5), res.ups,trace = F))
+```
+Alpha2 and beta1,2,3,5 are not significant. So I will try GARCH(1,4) and ARCH(1).
+
+```{r,warning=FALSE}
+summary(garchFit(~garch(1,4), res.ups,trace = F))
+summary(garchFit(~garch(1,0), res.ups,trace = F))
+```
+
+The best model above with the smallest AIC is GARCH(1,4). So for UPS stock price the best model is ARIMA(0,1,0)+GRACH(1,4).
+
+### JBHT Stock Price
+```{r}
+# returns_jbht
+fit.jbht <- Arima(log.jbht, order=c(3,0,2))
+summary(fit.jbht)
+res.jbht <- fit.jbht$res
+ggtsdisplay(res.jbht^2)
+```
+The squared returns show significant correlations at lag orders p=1 to 6 and q=0 to 6. Given this observation, it would be more appropriate to utilize an GARCH model.
+
+```{r,warning=FALSE}
+model <- list() ## set counter
+cc <- 1
+for (p in 1:6) {
+  for (q in 1:6) {
+  
+model[[cc]] <- garch(res.jbht,order=c(q,p),trace=F)
+cc <- cc + 1
+}
+} 
+
+## get AIC values for model evaluation
+GARCH_AIC <- sapply(model, AIC) ## model with lowest AIC is the best
+which(GARCH_AIC == min(GARCH_AIC))
+
+model[[which(GARCH_AIC == min(GARCH_AIC))]]
+
+```
+```{r}
+library(fGarch)
+summary(garchFit(~garch(2,1), res.jbht,trace = F))
+
+```
+Alpha2 is not significant. So I will try GARCH(1,1).
+
+```{r,warning=FALSE}
+summary(garchFit(~garch(1,1), res.jbht,trace = F))
+```
+The best model above with the smallest AIC is GARCH(1,1). So for JBHT stock price the best model is ARIMA(3,0,2)+GRACH(1,1).
+:::
+
+
+## Final Model
+::: panel-tabset
+
+### UPS Stock Price
+
+Best model: ARIMA(0,1,0)+GRACH(1,4)
+```{r,warning=FALSE}
+# returns_ups
+summary(fit.ups)
+summary(garchFit(~garch(1,4), res.ups,trace = F))
+checkresiduals(garch(res.jbht, order = c(4,1),trace = F))
+
+```
+
+The model's residual plots generally look satisfactory, with only a few notable lags in the ACF plots. The AIC values are relatively low, indicating a good fit. However, it's worth noting that not all coefficients for the GARCH model were statistically significant, suggesting that some correlations may not be entirely captured by the model. Additionally, the Ljung-Box test results show all p-values above 0.05, indicating that there may not be significant autocorrelation remaining in the residuals.
+
+### JBHT Stock Price
+
+Best model: ARIMA(3,0,2)+GRACH(1,1)
+```{r}
+# returns_jbht
+summary(fit.jbht)
+summary(garchFit(~garch(1,1), res.jbht,trace = F))
+
+checkresiduals(garch(res.jbht, order = c(1,1),trace = F))
+```
+The model's residual plots generally look satisfactory, with only a few notable lags in the ACF plots. The AIC values are relatively low, indicating a good fit. However, it's worth noting that not all coefficients for the ARIMA model were statistically significant, suggesting that some correlations may not be entirely captured by the model. Additionally, the Ljung-Box test results show all p-values above 0.05, indicating that there may not be significant autocorrelation remaining in the residuals.
+:::
+
+
+## Model Equations
+::: panel-tabset
+
+### UPS Stock Price
+$\operatorname{ARIMA}(0,1,0)$
+
+$$
+\left(1-B\right) Y_t=\epsilon_t
+$$
+$\operatorname{GARCH}(1,4)$
+$$
+\sigma_t^2=\omega+\alpha_1 \varepsilon_{t-1}^2+\beta_1 \sigma_{t-1}^2+\beta_2 \sigma_{t-2}^2+\beta_3 \sigma_{t-3}^3+\beta_4 \sigma_{t-4}^4
+$$
+
+### JBHT Stock Price
+
+$\operatorname{ARIMA}(3,0,2)$
+
+$$
+\left(1-\phi_1 B-\phi_2 B^2-\phi_3 B^3\right) Y_t=\left(1+\theta_1 B+\theta_2 B^2\right) \epsilon_t
+$$
+$\operatorname{GARCH}(1,1)$
+
+$$
+\sigma_t^2=\omega+\alpha_1 \varepsilon_{t-1}^2+\beta_1 \sigma_{t-1}^2
+$$
+:::
+
+
+## 
+::: panel-tabset
+
+### UPS Stock Price
+```{r}
+# returns_ups
+
+
+```
+
+### JBHT Stock Price
+```{r}
+# returns_jbht
+
+
+```
+
+:::
+
+
+
 
