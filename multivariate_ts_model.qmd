@@ -350,8 +350,8 @@ Model1: ARIMA(3,0,2)x(0,0,0)[52]
 ```{r}
 # model1: ARIMA(3,0,2)x(0,0,0)[52]
 set.seed(1234)
-model_output12 <- capture.output(sarima(res.fit1, 3,0,2, 0,0,0,52)) 
-cat(model_output12[105:116], model_output12[length(model_output12)], sep = "\n")
+model_output123 <- capture.output(sarima(res.fit1, 3,0,2, 0,0,0,52)) 
+cat(model_output123[105:120], model_output123[length(model_output123)], sep = "\n")
 ```
 
 Model2: ARIMA(0,1,0)(1,0,0)[52]
@@ -602,7 +602,9 @@ fit <- Arima(ups_covid_ts[,'UPS'], order=c(0,1,0), seasonal=c(1,0,0), xreg=ups_c
 summary(fit)
 ```
 
-**Equation:**  $y_t = -0.0008x_t + (1-B)n_t + (1-0.0795B) z_t$ 
+**Equation:**  $y_t = -0.0008x_t + \Phi(B^{52})(1-B)n_t$ 
+
+$\Phi(B^s) = 1+0.0795B^{52}$
 
 ### Canada Freight Value ~ Fuel Price + TSI
 
