@@ -26,6 +26,7 @@ library(gridExtra)
 library(zoo) 
 library(vars)  
 library(dplyr)
+library(fGarch)
 ```
 
 ## Literature Review
@@ -601,6 +602,31 @@ The manual model had lower RMSE compared to the auto.arima model. Therefore, the
 fit <- Arima(ups_covid_ts[,'UPS'], order=c(0,1,0), seasonal=c(1,0,0), xreg=ups_covid_ts[,'COVID'])
 summary(fit)
 ```
+
+GARCH model on SARIMAX residuals
+```{r, warning=FALSE}
+ggAcf((residuals(fit))^2)
+ggPacf((residuals(fit))^2)
+
+model <- list() ## set counter
+cc <- 1
+for (p in 1:6) {
+  for (q in 1:6) {
+  
+model[[cc]] <- garch(residuals(fit),order=c(q,p),trace=F)
+cc <- cc + 1
+}
+} 
+
+## get AIC values for model evaluation
+GARCH_AIC <- sapply(model, AIC) ## model with lowest AIC is the best
+which(GARCH_AIC == min(GARCH_AIC))
+model[[which(GARCH_AIC == min(GARCH_AIC))]]
+
+summary(garchFit(~garch(1,1), residuals(fit),trace = F))
+```
+
+Alpha and beta are not significant, so SARIMAX model is enough.
 
 **Equation:**  $y_t = -0.0008x_t + \Phi(B^{52})(1-B)n_t$ 
 

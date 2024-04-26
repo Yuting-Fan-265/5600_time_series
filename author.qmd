@@ -16,7 +16,7 @@ title: "Author"
   <tbody>
     <tr>
     <td><img src="./images/photo.png" alt="Yuting" /></td>
-      <td>Yuting Fan comes from Guangzhou, a southern city of China. She received a Master of Public Administration from South China University of Technology, and a Bachelor of Management Science in Public Relations from Sun Yat-sen University. She used to be a Senior Project Manager at Sun Yat-sen University. Her main responsibility was to liaise with various medical professors and organize Continuing Medical Education programs for hospitals across the country in China.</td>
+      <td>Yuting Fan comes from Guangzhou, a southern city of China. She is currently pursuing a graduate degree in Data Science and Analytics at Georgetown University. And received a Master of Public Administration from South China University of Technology, and a Bachelor of Management Science in Public Relations from Sun Yat-sen University. She used to be a Senior Project Manager at Sun Yat-sen University. Her main responsibility was to liaise with various medical professors and organize Continuing Medical Education programs for hospitals across the country in China.</td>
     </tr>
   </tbody>
 </table>
@@ -37,6 +37,6 @@ title: "Author"
 - Database Systems and SQL 
 - Digital Storytelling 
 - Natural Language Processing
-- Image Mining and Computer Vision Analytics
+- Time Series Data Analysis
 :::
 ::::
