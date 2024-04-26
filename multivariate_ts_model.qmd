@@ -47,9 +47,9 @@ Lastly, the analysis considers the dynamics between GDP, Revenue, and Employment
 
 ## Define Models
 
-### ARIMAX: UPS Stock Price ~ Covid New Cases (Weekly)
+### SARIMAX: UPS Stock Price ~ Covid New Cases (Weekly)
 ```{r}
-#  ARIMAX: ups stock price and covid new cases (weekly)
+#  SARIMAX: ups stock price and covid new cases (weekly)
 # get the weekly stock price of ups
 ups <- getSymbols("UPS",auto.assign = FALSE, from = "2020-01-01", to = "2023-05-15",src="yahoo") 
 ups=data.frame(ups)
@@ -352,7 +352,7 @@ Model1: ARIMA(3,0,2)x(0,0,0)[52]
 # model1: ARIMA(3,0,2)x(0,0,0)[52]
 set.seed(1234)
 model_output123 <- capture.output(sarima(res.fit1, 3,0,2, 0,0,0,52)) 
-cat(model_output123[105:120], model_output123[length(model_output123)], sep = "\n")
+cat(model_output123[105:125], model_output123[length(model_output123)], sep = "\n")
 ```
 
 Model2: ARIMA(0,1,0)(1,0,0)[52]
