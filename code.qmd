@@ -3,11 +3,11 @@ title: "Code"
 format: html
 ---
 
-
+![](/images/code.jpg){width=800}
 
 ## GitHub Repository
 
 Please refer to the [GitHub Repository / Code](https://github.com/Yuting-Fan-265/5600_time_series) that contains the code used in this analysis.
 
-## File Structure
+
 
