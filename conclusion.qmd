@@ -3,9 +3,7 @@ title: "Conclusions"
 format: html
 ---
 
-![](/images/freight-conclusion.jpeg)
-
-\
+![](images/big_pic.png){width=600}
 
 The study of changes over time within the freight transportation industry has provided a thorough understanding of its dynamics across various sectors. By utilizing extensive time series data and a diverse range of analytical methods, several essential insights have emerged, shaping our comprehension of the domestic and international freight movement, the industry's economic contributions, and the stock performance of major players.
 
@@ -37,3 +35,8 @@ Regional and Modal Variations: The examination of regional and modal variations 
 *Relationship with External Factors:* The correlation between UPS stock prices and new COVID-19 cases has been examined, revealing a negative relationship between the two. This implies that as new COVID-19 cases increase, UPS stock prices decrease, indicating the vulnerability of the industry to external factors.
 
 In conclusion, this project provides valuable insights into the adaptability and resilience of the U.S. freight transportation industry amidst challenging economic landscapes. However, continued research and analysis will be essential for navigating future uncertainties and maximizing the industry's potential for growth and sustainability.
+
+
+![](/images/freight-conclusion.jpeg)
+
+\
